@@ -31,6 +31,10 @@ class UsuarioPanel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 510, nullable: true)]
     private ?string $nombre = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $auditId = null;
+
+
     public function __construct()
     {
         $this->roles = new ArrayCollection();
@@ -126,4 +130,16 @@ class UsuarioPanel implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getAuditId(): ?int
+    {
+        return $this->auditId;
+    }
+
+    public function setAuditId(?int $auditId): self
+    {
+        $this->auditId = $auditId;
+        return $this;
+    }
+
 }
