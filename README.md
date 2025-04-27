@@ -50,6 +50,14 @@ php bin/console doctrine:database:create
 ```bash
 php bin/console doctrine:migrations:migrate
 ```
+```bash
+mkdir -p config/jwt
+openssl genrsa -aes256 -out config/jwt/private.pem 4096
+openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
+chmod 600 config/jwt/private.pem
+chmod 644 config/jwt/public.pem
+
+```
 
 ---
 
