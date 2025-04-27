@@ -29,7 +29,7 @@ class ServiceController extends AbstractController
 
         $service = new Service();
         $service->setName($data['name'] ?? null);
-        $service->setAudiUser($this->getUser()?->getId() ?? null);
+        $service->setAudiUser($this->getUser()?->getAuditId() ?? null);
         $service->setAudiDate(new \DateTime());
         $service->setAudiAction('I');
 
@@ -45,7 +45,7 @@ class ServiceController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $service->setName($data['name'] ?? $service->getName());
-        $service->setAudiUser($this->getUser()?->getId() ?? null);
+        $service->setAudiUser($this->getUser()?->getAuditId() ?? null);
         $service->setAudiDate(new \DateTime());
         $service->setAudiAction('U');
 
@@ -54,12 +54,27 @@ class ServiceController extends AbstractController
         return $this->json($service);
     }
 
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(Service $service, EntityManagerInterface $em): JsonResponse
+    /**
+     * @throws \Exception
+     */
+    #[Route('/{id}', methods: ['DELETE'])]
+    public function delete(int $id, Request $request, EntityManagerInterface $em,
+                           ServiceRepository $serviceRepository): JsonResponse
     {
-        $em->remove($service);
+        $service = $serviceRepository->find($id);
+
+        if (!$service) {
+            return new JsonResponse(['error' => 'Necesidad no encontrada.'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $service->setAudiUser($this->getUser()?->getAuditId() ?? null);
+        $service->setAudiDate(new \DateTimeImmutable($data['audi_date'] ?? 'now'));
+        $service->setAudiAction('D');
+
         $em->flush();
 
-        return $this->json(null, 204);
+        return new JsonResponse(['message' => 'Necesidad marcada como eliminada.']);
     }
 }
