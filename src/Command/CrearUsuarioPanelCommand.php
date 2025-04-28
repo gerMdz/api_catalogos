@@ -4,12 +4,12 @@ namespace App\Command;
 
 use App\Entity\Role;
 use App\Entity\UsuarioPanel;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -17,27 +17,31 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class CrearUsuarioPanelCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly EntityManagerInterface      $em,
         private readonly UserPasswordHasherInterface $hasher
-    ) {
+    )
+    {
         parent::__construct();
     }
 
+    /**
+     * @throws Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $helper = $this->getHelper('question');
 
-        // Preguntar email
         $emailQuestion = new Question('📧 Ingrese el email del nuevo usuario: ');
         $email = $helper->ask($input, $output, $emailQuestion);
 
-        // Preguntar contraseña (oculta)
+        $nombreQuestion = new Question('📧 Ingrese el nombre del nuevo usuario: ');
+        $nombre = $helper->ask($input, $output, $nombreQuestion);
+
         $passwordQuestion = new Question('🔒 Ingrese la contraseña: ');
         $passwordQuestion->setHidden(true);
         $passwordQuestion->setHiddenFallback(false);
         $password = $helper->ask($input, $output, $passwordQuestion);
 
-        // Confirmar contraseña
         $passwordConfirmQuestion = new Question('🔒 Confirme la contraseña: ');
         $passwordConfirmQuestion->setHidden(true);
         $passwordConfirmQuestion->setHiddenFallback(false);
@@ -48,7 +52,6 @@ class CrearUsuarioPanelCommand extends Command
             return Command::FAILURE;
         }
 
-        // Crear roles si no existen
         $roleUser = $this->em->getRepository(Role::class)->findOneBy(['slug' => 'ROLE_USER']);
         if (!$roleUser) {
             $roleUser = new Role();
@@ -67,9 +70,18 @@ class CrearUsuarioPanelCommand extends Command
 
         $this->em->flush();
 
-        // Crear el usuario
+        $conn = $this->em->getConnection();
+        $sql = "SELECT MAX(audit_id) as max_audit_id FROM usuario_panel";
+        $stmt = $conn->executeQuery($sql);
+        $result = $stmt->fetchAssociative();
+        $maxAuditId = $result['max_audit_id'] ?? 0;
+
+        $newAuditId = (int) $maxAuditId + 1;
+
         $usuario = new UsuarioPanel();
         $usuario->setEmail($email);
+        $usuario->setNombre($nombre);
+        $usuario->setAuditId($newAuditId);
         $usuario->addRole($roleUser);
         $usuario->addRole($roleAdmin);
         $usuario->setPassword($this->hasher->hashPassword($usuario, $password));
@@ -77,7 +89,7 @@ class CrearUsuarioPanelCommand extends Command
         $this->em->persist($usuario);
         $this->em->flush();
 
-        $output->writeln('<info>✅ UsuarioPanel creado con éxito!</info>');
+        $output->writeln(sprintf('<info>✅ UsuarioPanel creado con éxito! Audit ID asignado: %d</info>', $newAuditId));
         return Command::SUCCESS;
     }
 }
