@@ -40,13 +40,23 @@ class UsuarioPanelController extends AbstractController
     {
         $payload = json_decode($request->getContent(), true);
 
-        if (empty($payload['email']) || empty($payload['password']) || empty($payload['roles'])) {
-            return $this->json(['error' => 'Email, password y roles son obligatorios.'], 400);
+        if (empty($payload['email']) || empty($payload['password']) || empty($payload['roles']) || empty($payload['nombre'])) {
+            return $this->json(['error' => 'Nombre, email, password y roles son obligatorios.'], 400);
         }
 
+        // Obtener el auditId más alto actual
+        $conn = $em->getConnection();
+        $sql = "SELECT MAX(audit_id) as max_audit_id FROM usuario_panel";
+        $stmt = $conn->executeQuery($sql);
+        $result = $stmt->fetchAssociative();
+        $maxAuditId = $result['max_audit_id'] ?? 0;
+        $newAuditId = (int) $maxAuditId + 1;
+
         $usuario = new UsuarioPanel();
+        $usuario->setNombre($payload['nombre']);
         $usuario->setEmail($payload['email']);
         $usuario->setPassword($passwordHasher->hashPassword($usuario, $payload['password']));
+        $usuario->setAuditId($newAuditId); // <-- aquí le asignamos el auditId automático
 
         foreach ($payload['roles'] as $roleId) {
             $role = $roleRepository->find($roleId);
@@ -58,8 +68,9 @@ class UsuarioPanelController extends AbstractController
         $em->persist($usuario);
         $em->flush();
 
-        return $this->json(['message' => 'Usuario creado con éxito'], 201);
+        return $this->json(['message' => 'Usuario creado con éxito', 'audit_id' => $newAuditId], 201);
     }
+
 
 
     #[Route('/{id}', name: 'api_usuarios_update', methods: ['PUT'])]

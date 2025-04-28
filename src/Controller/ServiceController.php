@@ -5,7 +5,10 @@ namespace App\Controller;
 
 use App\Entity\Service;
 use App\Repository\ServiceRepository;
+use App\Repository\UsuarioPanelRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,4 +80,40 @@ class ServiceController extends AbstractController
 
         return new JsonResponse(['message' => 'Necesidad marcada como eliminada.']);
     }
+
+
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(Service $service, UsuarioPanelRepository $usuarioPanelRepository): JsonResponse
+    {
+        static $usuariosCache = [];
+
+        $auditUser = null;
+        $idAudit = $service->getAudiUser();
+
+        if ($idAudit) {
+            if (!isset($usuariosCache[$idAudit])) {
+                $userAction = $usuarioPanelRepository->findOneBy(['auditId' => $idAudit]);
+                $usuariosCache[$idAudit] = $userAction;
+            } else {
+                $userAction = $usuariosCache[$idAudit];
+            }
+
+            if ($userAction) {
+                $auditUser = [
+                    'nombre' => $userAction->getNombre(),
+                    'email' => $userAction->getEmail()
+                ];
+            }
+        }
+
+        return $this->json([
+            'id' => $service->getId(),
+            'name' => $service->getName(),
+            'audi_user' => $auditUser,
+            'audi_date' => $service->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audi_action' => $service->getAudiAction(),
+        ]);
+    }
+
+
 }
