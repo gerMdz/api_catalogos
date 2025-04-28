@@ -23,7 +23,6 @@ class FamilyController extends AbstractController
             return [
                 'id' => $family->getId(),
                 'name' => $family->getName(),
-                'description' => $family->getDescription(),
                 'audiUser' => $family->getAudiUser(),
                 'audiDate' => $family->getAudiDate()?->format('Y-m-d H:i:s'),
                 'audiAction' => $family->getAudiAction(),
