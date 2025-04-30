@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -23,7 +25,18 @@ class CivilState
     private ?\DateTimeInterface $audiDate = null;
 
     #[ORM\Column(type: 'string', length: 1, nullable: true)]
-    private ?string $audiAction = null; // 'I', 'U' o 'D'
+    private ?string $audiAction = null;
+
+    /**
+     * @var Collection<int, Member>
+     */
+    #[ORM\OneToMany(targetEntity: Member::class, mappedBy: 'civilState')]
+    private Collection $members;
+
+    public function __construct()
+    {
+        $this->members = new ArrayCollection();
+    } // 'I', 'U' o 'D'
 
     // Getters y Setters
 
@@ -73,6 +86,36 @@ class CivilState
     public function setAudiAction(?string $audiAction): self
     {
         $this->audiAction = $audiAction;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Member>
+     */
+    public function getMembers(): Collection
+    {
+        return $this->members;
+    }
+
+    public function addMember(Member $member): static
+    {
+        if (!$this->members->contains($member)) {
+            $this->members->add($member);
+            $member->setCivilState($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMember(Member $member): static
+    {
+        if ($this->members->removeElement($member)) {
+            // set the owning side to null (unless already changed)
+            if ($member->getCivilState() === $this) {
+                $member->setCivilState(null);
+            }
+        }
+
         return $this;
     }
 }

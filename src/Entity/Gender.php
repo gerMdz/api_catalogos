@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\GenderRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GenderRepository::class)]
@@ -24,6 +26,17 @@ class Gender
 
     #[ORM\Column(type: 'string', length: 1, nullable: true)]
     private ?string $audiAction = null;
+
+    /**
+     * @var Collection<int, Member>
+     */
+    #[ORM\OneToMany(targetEntity: Member::class, mappedBy: 'gender')]
+    private Collection $members;
+
+    public function __construct()
+    {
+        $this->members = new ArrayCollection();
+    }
 
     // Getters y Setters
     public function getId(): ?int
@@ -72,6 +85,36 @@ class Gender
     public function setAudiAction(?string $audiAction): self
     {
         $this->audiAction = $audiAction;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Member>
+     */
+    public function getMembers(): Collection
+    {
+        return $this->members;
+    }
+
+    public function addMember(Member $member): static
+    {
+        if (!$this->members->contains($member)) {
+            $this->members->add($member);
+            $member->setGenderId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMember(Member $member): static
+    {
+        if ($this->members->removeElement($member)) {
+            // set the owning side to null (unless already changed)
+            if ($member->getGenderId() === $this) {
+                $member->setGenderId(null);
+            }
+        }
+
         return $this;
     }
 }
