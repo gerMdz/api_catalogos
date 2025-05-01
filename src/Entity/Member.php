@@ -7,6 +7,7 @@ use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MemberRepository::class)]
+#[ORM\Table(name: 'members')]
 class Member
 {
     #[ORM\Id]
@@ -88,11 +89,11 @@ class Member
 
     #[ORM\ManyToOne(inversedBy: 'members')]
     #[ORM\Column(name: 'gender_id', type: 'integer')]
-    private ?Gender $gender = null;
+    private ?int $gender = null;
 
     #[ORM\ManyToOne(inversedBy: 'members')]
-    #[ORM\Column(name: 'civil_state_id', type: 'integer')]
-    private ?CivilState $civilState = null;
+    #[ORM\Column(name: 'civil_state_id')]
+    private ?int $civilState = null;
 
     public function getId(): ?int
     {
@@ -174,15 +175,7 @@ class Member
         $this->phone = $phone;
     }
 
-    public function getCivilStateId(): int
-    {
-        return $this->civilStateId;
-    }
 
-    public function setCivilStateId(int $civilStateId): void
-    {
-        $this->civilStateId = $civilStateId;
-    }
 
     public function getPathPhoto(): ?string
     {
@@ -354,24 +347,24 @@ class Member
         $this->audiAction = $audiAction;
     }
 
-    public function getGender(): ?Gender
+    public function getGender():?int
     {
         return $this->gender;
     }
 
-    public function setGender(?Gender $gender): static
+    public function setGender($gender): static
     {
         $this->gender = $gender;
 
         return $this;
     }
 
-    public function getCivilState(): ?CivilState
+    public function getCivilState(): ?int
     {
         return $this->civilState;
     }
 
-    public function setCivilState(?CivilState $civilState): static
+    public function setCivilState($civilState): static
     {
         $this->civilState = $civilState;
 

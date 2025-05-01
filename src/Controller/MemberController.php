@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Member;
+use App\Repository\CivilStateRepository;
+use App\Repository\GenderRepository;
 use App\Repository\MemberRepository;
 use App\Repository\UsuarioPanelRepository;
 use DateTime;
@@ -18,11 +20,49 @@ use Symfony\Component\Routing\Attribute\Route;
 class MemberController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(MemberRepository $memberRepository): JsonResponse
-    {
+    public function list(
+        MemberRepository $memberRepository,
+        GenderRepository $genderRepository,
+        CivilStateRepository $civilStateRepository
+    ): JsonResponse {
         $members = $memberRepository->findBy([], ['lastname' => 'ASC']);
-        return $this->json($members);
+        $generos = $genderRepository->findAll();
+        $estadosCiviles = $civilStateRepository->findAll();
+
+        // Armamos mapas para lookup rápido
+        $mapGenero = [];
+        foreach ($generos as $g) {
+            $mapGenero[$g->getId()] = $g->getName();
+        }
+
+        $mapEstadoCivil = [];
+        foreach ($estadosCiviles as $e) {
+            $mapEstadoCivil[$e->getId()] = $e->getName();
+        }
+
+        // Recorremos y armamos el array con valores resueltos
+        $data = [];
+        foreach ($members as $member) {
+            $data[] = [
+                'id' => $member->getId(),
+                'name' => $member->getName(),
+                'lastname' => $member->getLastname(),
+                'birthdate' => $member->getBirthdate()?->format('Y-m-d'),
+                'dniDocument' => $member->getDniDocument(),
+                'email' => $member->getEmail(),
+                'phone' => $member->getPhone(),
+                'address' => $member->getAddress(),
+                'genderId' => $member->getGender(),
+                'gender' => $mapGenero[$member->getGender()] ?? null,
+                'civilStateId' => $member->getCivilState(),
+                'civilState' => $mapEstadoCivil[$member->getCivilState()] ?? null,
+                'audiAction' => $member->getAudiAction(),
+            ];
+        }
+
+        return $this->json($data);
     }
+
 
     /**
      * @throws Exception
@@ -41,7 +81,7 @@ class MemberController extends AbstractController
         $member->setEmail($data['email'] ?? null);
         $member->setPhone($data['phone'] ?? null);
         $member->setGender($data['gender_id'] ?? 0);
-        $member->setCivilStateId($data['civil_state_id'] ?? 0);
+        $member->setCivilState($data['civil_state_id'] ?? 0);
         $member->setPathPhoto($data['path_photo'] ?? null);
         $member->setNameProfession($data['name_profession'] ?? null);
         $member->setArtisticSkills($data['artistic_skills'] ?? null);
@@ -83,7 +123,7 @@ class MemberController extends AbstractController
         $member->setEmail($data['email'] ?? $member->getEmail());
         $member->setPhone($data['phone'] ?? $member->getPhone());
         $member->setGender($data['gender_id'] ?? $member->getGender());
-        $member->setCivilStateId($data['civil_state_id'] ?? $member->getCivilStateId());
+        $member->setCivilState($data['civil_state_id'] ?? $member->getCivilState());
         $member->setPathPhoto($data['path_photo'] ?? $member->getPathPhoto());
         $member->setNameProfession($data['name_profession'] ?? $member->getNameProfession());
         $member->setArtisticSkills($data['artistic_skills'] ?? $member->getArtisticSkills());
@@ -132,7 +172,9 @@ class MemberController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Member $member, UsuarioPanelRepository $usuarioPanelRepository): JsonResponse
+    public function show(Member           $member, UsuarioPanelRepository $usuarioPanelRepository,
+                         GenderRepository $genderRepository, CivilStateRepository $civilStateRepository
+    ): JsonResponse
     {
         static $usuariosCache = [];
 
@@ -155,6 +197,9 @@ class MemberController extends AbstractController
             }
         }
 
+        $gender = $genderRepository->find($member->getGender())?->getName();
+        $civilState = $civilStateRepository->find($member->getCivilState())?->getName();
+
         return $this->json([
             'id' => $member->getId(),
             'name' => $member->getName(),
@@ -164,9 +209,12 @@ class MemberController extends AbstractController
             'address' => $member->getAddress(),
             'email' => $member->getEmail(),
             'phone' => $member->getPhone(),
+            'gender' => $gender,
+            'civilState' => $civilState,
             'audi_user' => $auditUser,
             'audi_date' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
             'audi_action' => $member->getAudiAction(),
         ]);
     }
+
 }
