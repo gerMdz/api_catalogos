@@ -78,12 +78,13 @@ class MemberExperienceController extends AbstractController
 
     #[Route('/', name: 'member_experience_create', methods: ['POST'])]
     public function create(
-        Request $request,
-        EntityManagerInterface $em,
-        MemberRepository $memberRepo,
-        ExperienceRepository $experienceRepo,
+        Request                    $request,
+        EntityManagerInterface     $em,
+        MemberRepository           $memberRepo,
+        ExperienceRepository       $experienceRepo,
         MemberExperienceRepository $memberExperienceRepo
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
 
         $member = $memberRepo->find($data['member_id'] ?? 0);
@@ -121,13 +122,14 @@ class MemberExperienceController extends AbstractController
 
     #[Route('/{id}', name: 'member_experience_update', methods: ['PUT'])]
     public function update(
-        int $id,
-        Request $request,
+        int                        $id,
+        Request                    $request,
         MemberExperienceRepository $repository,
-        EntityManagerInterface $em,
-        MemberRepository $memberRepo,
-        ExperienceRepository $experienceRepo
-    ): JsonResponse {
+        EntityManagerInterface     $em,
+        MemberRepository           $memberRepo,
+        ExperienceRepository       $experienceRepo
+    ): JsonResponse
+    {
         $me = $repository->find($id);
         if (!$me) {
             return $this->json(['error' => 'Relación no encontrada'], 404);
@@ -189,7 +191,6 @@ class MemberExperienceController extends AbstractController
         $me->setAudiDate(new DateTime());
         $me->setAudiUser($this->getUser()->getAuditId());
 
-        $em->remove($me);
         $em->flush();
 
         return $this->json(['success' => true]);
