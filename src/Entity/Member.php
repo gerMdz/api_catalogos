@@ -95,6 +95,12 @@ class Member
     #[ORM\Column(name: 'civil_state_id')]
     private ?int $civilState = null;
 
+    public function __toString(): string
+    {
+        return trim("{$this->lastname}, {$this->name}");
+    }
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -174,7 +180,6 @@ class Member
     {
         $this->phone = $phone;
     }
-
 
 
     public function getPathPhoto(): ?string
@@ -347,7 +352,7 @@ class Member
         $this->audiAction = $audiAction;
     }
 
-    public function getGender():?int
+    public function getGender(): ?int
     {
         return $this->gender;
     }

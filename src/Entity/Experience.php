@@ -26,7 +26,13 @@ class Experience
     #[ORM\Column(type: 'string', length: 1, nullable: true)]
     private ?string $audiAction = null;
 
-    // Getters y Setters
+
+    public function __toString(): string
+    {
+        return (string) $this->name;
+    }
+
+
     public function getId(): ?int
     {
         return $this->id;
