@@ -22,7 +22,7 @@ class Member
     private string $lastname;
 
     #[ORM\Column(type: 'date')]
-    private DateTimeInterface $birthdate;
+    private ?DateTimeInterface $birthdate;
 
     #[ORM\Column(length: 20)]
     private string $dniDocument;
@@ -131,14 +131,15 @@ class Member
         $this->lastname = $lastname;
     }
 
-    public function getBirthdate(): DateTimeInterface
+    public function getBirthdate(): ?DateTimeInterface
     {
         return $this->birthdate;
     }
 
-    public function setBirthdate(DateTimeInterface $birthdate): void
+    public function setBirthdate(DateTimeInterface $birthdate): self
     {
         $this->birthdate = $birthdate;
+        return $this;
     }
 
     public function getDniDocument(): string

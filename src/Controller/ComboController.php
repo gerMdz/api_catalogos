@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\FamilyRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,7 @@ class ComboController extends AbstractController
     #[Route('/member', name: 'combo_member', methods: ['GET'])]
     public function comboMember(Request $request, MemberRepository $memberRepository): JsonResponse
     {
-        $search = $request->query->get('search', '');
+        $search = $request->query->get('q', '');
 
         $qb = $memberRepository->createQueryBuilder('m')
             ->setMaxResults(30);
@@ -32,6 +33,7 @@ class ComboController extends AbstractController
             return [
                 'id' => $member->getId(),
                 'label' => $member->getLastname() . ' ' . $member->getName() . ' (' . $member->getDniDocument() . ')',
+                'value' => $member->getId(),
                 'dni' => $member->getDniDocument(),
             ];
         }, $members);
@@ -42,7 +44,7 @@ class ComboController extends AbstractController
     #[Route('/experience', name: 'combo_experience', methods: ['GET'])]
     public function comboExperience(Request $request, ExperienceRepository $experienceRepository): JsonResponse
     {
-        $search = $request->query->get('search', '');
+        $search = $request->query->get('q', '');
 
         $qb = $experienceRepository->createQueryBuilder('e')
             ->setMaxResults(10);
@@ -63,4 +65,31 @@ class ComboController extends AbstractController
 
         return $this->json($result);
     }
+
+    #[Route('/combo/family', name: 'combo_family', methods: ['GET'])]
+    public function comboFamily(Request $request, FamilyRepository $familyRepository): JsonResponse
+    {
+        $search = $request->query->get('q', '');
+
+
+        $qb = $familyRepository->createQueryBuilder('f')
+            ->setMaxResults(30);
+
+        if ($search) {
+            $qb->where('LOWER(f.name) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        $families = $qb->getQuery()->getResult();
+
+        $result = array_map(function ($family) {
+            return [
+                'id' => $family->getId(),
+                'label' => $family->getName(),
+            ];
+        }, $families);
+
+        return $this->json($result);
+    }
+
 }
