@@ -26,7 +26,12 @@ class Interest
     #[ORM\Column(type: 'string', length: 1, nullable: true)]
     private ?string $audiAction = null;
 
-    // Getters y Setters
+
+    public function __toString(): string
+    {
+        return $this->name ?? '';
+    }
+
     public function getId(): ?int
     {
         return $this->id;

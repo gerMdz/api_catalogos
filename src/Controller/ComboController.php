@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\FamilyRepository;
+use App\Repository\InterestRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -91,5 +92,30 @@ class ComboController extends AbstractController
 
         return $this->json($result);
     }
+
+    #[Route('/combo/interest', name: 'combo_interest', methods: ['GET'])]
+    public function comboInterest(Request $request, InterestRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+
+        $qb = $repo->createQueryBuilder('i')
+            ->where('i.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setMaxResults(10)
+            ->orderBy('i.nombre', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(i.nombre) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($i) => [
+            'id' => $i->getId(),
+            'label' => (string) $i,
+        ], $results));
+    }
+
 
 }
