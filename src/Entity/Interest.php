@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\InterestRepository;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InterestRepository::class)]
@@ -21,7 +22,7 @@ class Interest
     private ?int $audiUser = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $audiDate = null;
+    private ?DateTimeInterface $audiDate = null;
 
     #[ORM\Column(type: 'string', length: 1, nullable: true)]
     private ?string $audiAction = null;
@@ -59,12 +60,12 @@ class Interest
         return $this;
     }
 
-    public function getAudiDate(): ?\DateTimeInterface
+    public function getAudiDate(): ?DateTimeInterface
     {
         return $this->audiDate;
     }
 
-    public function setAudiDate(?\DateTimeInterface $audiDate): self
+    public function setAudiDate(?DateTimeInterface $audiDate): self
     {
         $this->audiDate = $audiDate;
         return $this;
