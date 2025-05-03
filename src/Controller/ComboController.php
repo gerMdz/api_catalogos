@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Repository\FamilyRepository;
 use App\Repository\InterestRepository;
+use App\Repository\LifeStageRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -115,5 +117,31 @@ class ComboController extends AbstractController
             'label' => (string)$i,
         ], $results));
     }
+
+    #[Route('/life-stage', name: 'combo_life_stage', methods: ['GET'])]
+    public function comboLifeStage(Request $request, LifeStageRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+
+        $qb = $repo->createQueryBuilder('ls')
+            ->andWhere('ls.audiAction IS NULL OR ls.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setMaxResults(30)
+            ->orderBy('ls.name', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(ls.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($ls) => [
+            'id' => $ls->getId(),
+            'label' => (string)$ls,
+        ], $results));
+    }
+
+
 
 }
