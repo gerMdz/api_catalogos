@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Member;
+use App\Entity\UsuarioPanel;
 use App\Repository\CivilStateRepository;
 use App\Repository\GenderRepository;
 use App\Repository\MemberRepository;
@@ -19,12 +20,18 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/members', name: 'api_members_')]
 class MemberController extends AbstractController
 {
+
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
+    }
+
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
-        MemberRepository $memberRepository,
-        GenderRepository $genderRepository,
+        MemberRepository     $memberRepository,
+        GenderRepository     $genderRepository,
         CivilStateRepository $civilStateRepository
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $members = $memberRepository->findBy([], ['lastname' => 'ASC']);
         $generos = $genderRepository->findAll();
         $estadosCiviles = $civilStateRepository->findAll();
@@ -39,6 +46,16 @@ class MemberController extends AbstractController
         foreach ($estadosCiviles as $e) {
             $mapEstadoCivil[$e->getId()] = $e->getName();
         }
+
+        // Obtener los IDs de todos los miembros que son relatedMember en MemberFamily
+        $relatedMemberIds = array_map(fn($row) => (int)$row['id'],
+            $this->em->createQuery("
+        SELECT DISTINCT IDENTITY(mf.relatedMember) AS id
+        FROM App\Entity\MemberFamily mf
+        WHERE mf.audiAction IS NULL OR mf.audiAction != 'D'
+    ")->getArrayResult()
+        );
+
 
         // Recorremos y armamos el array con valores resueltos
         $data = [];
@@ -56,9 +73,11 @@ class MemberController extends AbstractController
                 'gender' => $mapGenero[$member->getGender()] ?? null,
                 'civilStateId' => $member->getCivilState(),
                 'civilState' => $mapEstadoCivil[$member->getCivilState()] ?? null,
+                'relatedMember' => in_array($member->getId(), $relatedMemberIds),
                 'audiAction' => $member->getAudiAction(),
             ];
         }
+
 
         return $this->json($data);
     }
@@ -172,49 +191,51 @@ class MemberController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Member           $member, UsuarioPanelRepository $usuarioPanelRepository,
-                         GenderRepository $genderRepository, CivilStateRepository $civilStateRepository
-    ): JsonResponse
+    public function show(int $id, MemberRepository $memberRepo, GenderRepository $genderRepo, CivilStateRepository $civilRepo): JsonResponse
     {
-        static $usuariosCache = [];
-
-        $auditUser = null;
-        $idAudit = $member->getAudiUser();
-
-        if ($idAudit) {
-            if (!isset($usuariosCache[$idAudit])) {
-                $userAction = $usuarioPanelRepository->findOneBy(['auditId' => $idAudit]);
-                $usuariosCache[$idAudit] = $userAction;
-            } else {
-                $userAction = $usuariosCache[$idAudit];
-            }
-
-            if ($userAction) {
-                $auditUser = [
-                    'nombre' => $userAction->getNombre(),
-                    'email' => $userAction->getEmail()
-                ];
-            }
+        $member = $memberRepo->find($id);
+        if (!$member) {
+            return $this->json(['error' => 'Miembro no encontrado'], 404);
         }
 
-        $gender = $genderRepository->find($member->getGender())?->getName();
-        $civilState = $civilStateRepository->find($member->getCivilState())?->getName();
+        $gender = $genderRepo->find($member->getGender());
+        $civil = $civilRepo->find($member->getCivilState());
+
+        // ¿Es relatedMember?
+        $relatedMemberIds = array_map(fn($row) => (int)$row['id'],
+            $this->em->createQuery("
+            SELECT DISTINCT IDENTITY(mf.relatedMember) AS id
+            FROM App\Entity\MemberFamily mf
+            WHERE mf.audiAction IS NULL OR mf.audiAction != 'D'
+        ")->getArrayResult()
+        );
 
         return $this->json([
             'id' => $member->getId(),
             'name' => $member->getName(),
             'lastname' => $member->getLastname(),
             'birthdate' => $member->getBirthdate()?->format('Y-m-d'),
-            'dni_document' => $member->getDniDocument(),
-            'address' => $member->getAddress(),
+            'dniDocument' => $member->getDniDocument(),
             'email' => $member->getEmail(),
             'phone' => $member->getPhone(),
-            'gender' => $gender,
-            'civilState' => $civilState,
-            'audi_user' => $auditUser,
-            'audi_date' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
-            'audi_action' => $member->getAudiAction(),
+            'address' => $member->getAddress(),
+            'civilState' => $civil?->getName(),
+            'gender' => $gender?->getName(),
+            'relatedMember' => in_array($member->getId(), $relatedMemberIds),
+            'audiAction' => $member->getAudiAction(),
+            'audiDate' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audiUser' => $this->obtenerUsuarioPorAudiUser($member->getAudiUser()),
         ]);
     }
+
+    public function obtenerUsuarioPorAudiUser(?int $id)
+    {
+        $usuario = null;
+        if ($id) {
+            $usuario = $this->em->getRepository(UsuarioPanel::class)->findOneBy(['auditId' => $id])->getNombre();
+        }
+        return $usuario;
+    }
+
 
 }
