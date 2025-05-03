@@ -34,7 +34,6 @@ class ComboController extends AbstractController
             return [
                 'id' => $member->getId(),
                 'label' => $member->getLastname() . ' ' . $member->getName() . ' (' . $member->getDniDocument() . ')',
-                'value' => $member->getId(),
                 'dni' => $member->getDniDocument(),
             ];
         }, $members);
@@ -67,7 +66,7 @@ class ComboController extends AbstractController
         return $this->json($result);
     }
 
-    #[Route('/combo/family', name: 'combo_family', methods: ['GET'])]
+    #[Route('/family', name: 'combo_family', methods: ['GET'])]
     public function comboFamily(Request $request, FamilyRepository $familyRepository): JsonResponse
     {
         $search = $request->query->get('q', '');
@@ -93,19 +92,19 @@ class ComboController extends AbstractController
         return $this->json($result);
     }
 
-    #[Route('/combo/interest', name: 'combo_interest', methods: ['GET'])]
+    #[Route('/interest', name: 'combo_interest', methods: ['GET'])]
     public function comboInterest(Request $request, InterestRepository $repo): JsonResponse
     {
         $search = $request->query->get('q');
 
         $qb = $repo->createQueryBuilder('i')
-            ->where('i.audiAction != :deleted')
+            ->andWhere('i.audiAction IS NULL OR i.audiAction != :deleted')
             ->setParameter('deleted', 'D')
             ->setMaxResults(10)
-            ->orderBy('i.nombre', 'ASC');
+            ->orderBy('i.name', 'ASC');
 
         if ($search) {
-            $qb->andWhere('LOWER(i.nombre) LIKE :search')
+            $qb->andWhere('LOWER(i.name) LIKE :search')
                 ->setParameter('search', '%' . mb_strtolower($search) . '%');
         }
 
@@ -113,9 +112,8 @@ class ComboController extends AbstractController
 
         return $this->json(array_map(fn($i) => [
             'id' => $i->getId(),
-            'label' => (string) $i,
+            'label' => (string)$i,
         ], $results));
     }
-
 
 }

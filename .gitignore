@@ -28,3 +28,4 @@
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
 .idea
+/docs/

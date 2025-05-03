@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Member;
 use App\Entity\MemberInterest;
+use App\Entity\UsuarioPanel;
 use App\Repository\InterestRepository;
 use App\Repository\MemberInterestRepository;
 use App\Repository\MemberRepository;
@@ -17,13 +19,25 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/member-interest')]
 class MemberInterestController extends AbstractController
 {
-    #[Route('/', name: 'member_interest_list', methods: ['GET'])]
-    public function list(MemberInterestRepository $repo): JsonResponse
+
+    public function __construct(private readonly EntityManagerInterface $em)
     {
-        $items = $repo->findAllActive();
+    }
+
+    #[Route('/', name: 'member_interest_list', methods: ['GET'])]
+    public function list(Request $request, MemberInterestRepository $repo): JsonResponse
+    {
+        $incluirEliminados = $request->query->getBoolean('all', false);
+
+        $items = $incluirEliminados
+            ? $repo->findAllIncluyendoEliminados()
+            : $repo->findAllActivos();
 
         return $this->json(array_map(fn(MemberInterest $item) => [
             'id' => $item->getId(),
+            'audiUser' => $this->obtenerUsuarioPorAudiUser($item->getAudiUser()),
+            'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audiAction' => $item->getAudiAction() ?? 'I',
             'member' => [
                 'id' => $item->getMember()?->getId(),
                 'nombre' => $item->getMember(),
@@ -35,6 +49,7 @@ class MemberInterestController extends AbstractController
             ]
         ], $items));
     }
+
 
     #[Route('/{memberId}', name: 'member_interest_by_member', methods: ['GET'])]
     public function show(int $memberId, MemberRepository $memberRepo, MemberInterestRepository $repo): JsonResponse
@@ -50,7 +65,7 @@ class MemberInterestController extends AbstractController
             'id' => $item->getId(),
             'interest' => [
                 'id' => $item->getInterest()?->getId(),
-                'nombre' => $item->getInterest()??null,
+                'nombre' => $item->getInterest() ?? null,
             ]
         ], $items));
     }
@@ -138,5 +153,14 @@ class MemberInterestController extends AbstractController
         $em->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    public function obtenerUsuarioPorAudiUser(?int $id)
+    {
+        $usuario = null;
+        if ($id) {
+            $usuario = $this->em->getRepository(UsuarioPanel::class)->findOneBy(['auditId' => $id])->getNombre();
+        }
+        return $usuario;
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\MemberExperience;
+use App\Entity\MemberInterest;
 use App\Repository\MemberExperienceRepository;
+use App\Repository\MemberInterestRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
 use DateTime;
@@ -37,6 +39,7 @@ class MemberExperienceController extends AbstractController
 
         return $this->json($response);
     }
+
 
     #[Route('/{id}', name: 'member_experience_show', methods: ['GET'])]
     public function show(int $id, MemberExperienceRepository $repository): JsonResponse

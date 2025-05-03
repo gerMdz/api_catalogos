@@ -14,12 +14,12 @@ class MemberInterestRepository extends ServiceEntityRepository
         parent::__construct($registry, MemberInterest::class);
     }
 
-    public function findAllActive(): array
+    public function findAllActivos(): array
     {
         return $this->createQueryBuilder('mi')
             ->leftJoin('mi.member', 'm')->addSelect('m')
             ->leftJoin('mi.interest', 'i')->addSelect('i')
-            ->where('mi.audiAction != :deleted')
+            ->andWhere('mi.audiAction IS NULL OR mi.audiAction != :deleted')
             ->setParameter('deleted', 'D')
             ->orderBy('mi.id', 'DESC')
             ->getQuery()
@@ -31,10 +31,21 @@ class MemberInterestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('mi')
             ->leftJoin('mi.interest', 'i')->addSelect('i')
             ->where('mi.member = :member')
-            ->andWhere('mi.audiAction != :deleted')
+            ->andWhere('mi.audiAction IS NULL OR mi.audiAction != :deleted')
             ->setParameter('member', $member)
             ->setParameter('deleted', 'D')
             ->getQuery()
             ->getResult();
     }
+
+    public function findAllIncluyendoEliminados(): array
+    {
+        return $this->createQueryBuilder('mi')
+            ->leftJoin('mi.member', 'm')->addSelect('m')
+            ->leftJoin('mi.interest', 'i')->addSelect('i')
+            ->orderBy('mi.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }
