@@ -149,7 +149,7 @@ class ComboController extends AbstractController
     {
         $search = $request->query->get('q');
         $page = max(1, (int)$request->query->get('page', 1));
-        $limit = 10;
+        $limit = 30;
         $offset = ($page - 1) * $limit;
 
         $qb = $repo->createQueryBuilder('n')
@@ -177,7 +177,7 @@ class ComboController extends AbstractController
     {
         $search = $request->query->get('q');
         $page = max(1, (int)$request->query->get('page', 1));
-        $limit = 10;
+        $limit = 30;
         $offset = ($page - 1) * $limit;
 
         $qb = $repo->createQueryBuilder('s')
@@ -205,7 +205,7 @@ class ComboController extends AbstractController
     {
         $search = $request->query->get('q');
         $page = max(1, (int)$request->query->get('page', 1));
-        $limit = 10;
+        $limit = 30;
         $offset = ($page - 1) * $limit;
 
         $qb = $repo->createQueryBuilder('sm')
