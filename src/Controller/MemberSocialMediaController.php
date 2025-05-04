@@ -36,6 +36,7 @@ class MemberSocialMediaController extends AbstractApiController
             'socialMedia' => [
                 'id' => $item->getSocialMedia()?->getId(),
                 'nombre' => $item->getSocialMedia()?->getName(),
+                'otras' => $item->getOtherSocialMedia()
             ]
         ], $items));
     }
@@ -52,6 +53,7 @@ class MemberSocialMediaController extends AbstractApiController
                 'id' => $ms->getId(),
                 'member' => $ms->getMember()?->getNombreCompletoConDni(),
                 'socialMedia' => $ms->getSocialMedia()?->getName(),
+                'otras' => $ms->getOtherSocialMedia()
             ];
         }
 
