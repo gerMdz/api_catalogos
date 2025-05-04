@@ -9,6 +9,7 @@ use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
 use App\Repository\NeedRepository;
 use App\Repository\ServiceRepository;
+use App\Repository\SocialMediaRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -195,7 +196,35 @@ class ComboController extends AbstractController
 
         return $this->json(array_map(fn($s) => [
             'id' => $s->getId(),
-            'label' => (string)$s, // o $s->getName()
+            'label' => (string)$s,
+        ], $results));
+    }
+
+    #[Route('/social-media', name: 'combo_social_media', methods: ['GET'])]
+    public function comboSocialMedia(Request $request, SocialMediaRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $qb = $repo->createQueryBuilder('s')
+            ->andWhere('sm.audiAction IS NULL OR sm.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('sm.name', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(sm.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($sm) => [
+            'id' => $sm->getId(),
+            'label' => (string)$sm,
         ], $results));
     }
 
