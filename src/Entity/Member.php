@@ -377,5 +377,16 @@ class Member
         return $this;
     }
 
+    public function getNombreCompleto(): string
+    {
+        return trim($this->getName() . ' ' . $this->getLastname());
+    }
+
+    public function getNombreCompletoConDni(): string
+    {
+        return $this->getNombreCompleto() . ' (' . $this->getDniDocument() . ')';
+    }
+
+
 
 }

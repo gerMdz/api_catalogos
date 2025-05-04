@@ -8,6 +8,7 @@ use App\Repository\LifeStageRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
 use App\Repository\NeedRepository;
+use App\Repository\ServiceRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -167,6 +168,34 @@ class ComboController extends AbstractController
         return $this->json(array_map(fn($n) => [
             'id' => $n->getId(),
             'label' => (string)$n,
+        ], $results));
+    }
+
+    #[Route('/service', name: 'combo_service', methods: ['GET'])]
+    public function comboService(Request $request, ServiceRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $qb = $repo->createQueryBuilder('s')
+            ->andWhere('s.audiAction IS NULL OR s.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('s.name', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(s.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($s) => [
+            'id' => $s->getId(),
+            'label' => (string)$s, // o $s->getName()
         ], $results));
     }
 
