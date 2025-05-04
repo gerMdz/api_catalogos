@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\MemberLifeStage;
+use App\Entity\MemberNeed;
 use App\Entity\Member;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class MemberLifeStageRepository extends ServiceEntityRepository
+class MemberNeedRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, MemberLifeStage::class);
+        parent::__construct($registry, MemberNeed::class);
     }
 
     public function findAllActivos(): array
     {
-        return $this->createQueryBuilder('mls')
-            ->leftJoin('mls.member', 'm')
-            ->leftJoin('mls.lifeStage', 'ls')
+        return $this->createQueryBuilder('mn')
+            ->leftJoin('mn.member', 'm')
+            ->leftJoin('mn.need', 'ls')
             ->addSelect('m', 'ls')
-            ->where('mls.audiAction IS NULL OR mls.audiAction != :deleted')
+            ->where('mn.audiAction IS NULL OR mn.audiAction != :deleted')
             ->setParameter('deleted', 'D')
             ->getQuery()
             ->getResult();
@@ -28,11 +28,11 @@ class MemberLifeStageRepository extends ServiceEntityRepository
 
     public function findByMember(Member $member): array
     {
-        return $this->createQueryBuilder('mls')
-            ->leftJoin('mls.lifeStage', 'ls')
+        return $this->createQueryBuilder('mn')
+            ->leftJoin('mn.need', 'ls')
             ->addSelect('ls')
-            ->where('mls.member = :member')
-            ->andWhere('mls.audiAction IS NULL OR mls.audiAction != :deleted')
+            ->where('mn.member = :member')
+            ->andWhere('mn.audiAction IS NULL OR mn.audiAction != :deleted')
             ->setParameter('member', $member)
             ->setParameter('deleted', 'D')
             ->getQuery()
@@ -41,9 +41,9 @@ class MemberLifeStageRepository extends ServiceEntityRepository
 
     public function findAllIncluyendoEliminados(): array
     {
-        return $this->createQueryBuilder('mls')
-            ->leftJoin('mls.member', 'm')
-            ->leftJoin('mls.lifeStage', 'ls')
+        return $this->createQueryBuilder('mn')
+            ->leftJoin('mn.member', 'm')
+            ->leftJoin('mn.need', 'ls')
             ->addSelect('m', 'ls')
             ->getQuery()
             ->getResult();

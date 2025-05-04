@@ -7,7 +7,7 @@ use App\Repository\InterestRepository;
 use App\Repository\LifeStageRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\NeedRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -142,6 +142,33 @@ class ComboController extends AbstractController
         ], $results));
     }
 
+    #[Route('/need', name: 'combo_need', methods: ['GET'])]
+    public function comboNeed(Request $request, NeedRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $qb = $repo->createQueryBuilder('n')
+            ->andWhere('n.audiAction IS NULL OR n.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('n.name', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(n.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($n) => [
+            'id' => $n->getId(),
+            'label' => (string)$n,
+        ], $results));
+    }
 
 
 }
