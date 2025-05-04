@@ -19,13 +19,13 @@ class SocialMedia
     private ?string $name = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $audi_user = null;
+    private ?int $audiUser = null;
 
     #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $audi_date = null;
+    private ?DateTimeInterface $audiDate = null;
 
     #[ORM\Column(type: "string", length: 1, nullable: true)]
-    private ?string $audi_action = null;
+    private ?string $audiAction = null;
 
 
     public function __toString(): string
@@ -51,34 +51,34 @@ class SocialMedia
 
     public function getAudiUser(): ?int
     {
-        return $this->audi_user;
+        return $this->audiUser;
     }
 
-    public function setAudiUser(?int $audi_user): self
+    public function setAudiUser(?int $audiUser): self
     {
-        $this->audi_user = $audi_user;
+        $this->audiUser = $audiUser;
         return $this;
     }
 
     public function getAudiDate(): ?DateTimeInterface
     {
-        return $this->audi_date;
+        return $this->audiDate;
     }
 
-    public function setAudiDate(?DateTimeInterface $audi_date): self
+    public function setAudiDate(?DateTimeInterface $audiDate): self
     {
-        $this->audi_date = $audi_date;
+        $this->audiDate = $audiDate;
         return $this;
     }
 
     public function getAudiAction(): ?string
     {
-        return $this->audi_action;
+        return $this->audiAction;
     }
 
-    public function setAudiAction(?string $audi_action): self
+    public function setAudiAction(?string $audiAction): self
     {
-        $this->audi_action = $audi_action;
+        $this->audiAction = $audiAction;
         return $this;
     }
 }

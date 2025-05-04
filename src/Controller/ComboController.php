@@ -208,7 +208,7 @@ class ComboController extends AbstractController
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
-        $qb = $repo->createQueryBuilder('s')
+        $qb = $repo->createQueryBuilder('sm')
             ->andWhere('sm.audiAction IS NULL OR sm.audiAction != :deleted')
             ->setParameter('deleted', 'D')
             ->setFirstResult($offset)
