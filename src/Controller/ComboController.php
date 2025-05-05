@@ -10,6 +10,7 @@ use App\Repository\ExperienceRepository;
 use App\Repository\NeedRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\SocialMediaRepository;
+use App\Repository\VoluntaryRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -225,6 +226,34 @@ class ComboController extends AbstractController
         return $this->json(array_map(fn($sm) => [
             'id' => $sm->getId(),
             'label' => (string)$sm,
+        ], $results));
+    }
+
+    #[Route('/voluntary', name: 'combo_social_media', methods: ['GET'])]
+    public function comboVoluntary(Request $request, VoluntaryRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('q');
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = 30;
+        $offset = ($page - 1) * $limit;
+
+        $qb = $repo->createQueryBuilder('v')
+            ->andWhere('v.audiAction IS NULL OR v.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('v.name', 'ASC');
+
+        if ($search) {
+            $qb->andWhere('LOWER(v.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        return $this->json(array_map(fn($v) => [
+            'id' => $v->getId(),
+            'label' => (string)$v,
         ], $results));
     }
 
