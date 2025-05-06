@@ -2,14 +2,16 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\AuditTrait;
 use App\Repository\SocialMediaRepository;
-use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SocialMediaRepository::class)]
 #[ORM\Table(name: "social_media")]
 class SocialMedia
 {
+    use AuditTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -17,15 +19,6 @@ class SocialMedia
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $name = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?int $audiUser = null;
-
-    #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $audiDate = null;
-
-    #[ORM\Column(type: "string", length: 1, nullable: true)]
-    private ?string $audiAction = null;
 
 
     public function __toString(): string
@@ -49,36 +42,5 @@ class SocialMedia
         return $this;
     }
 
-    public function getAudiUser(): ?int
-    {
-        return $this->audiUser;
-    }
 
-    public function setAudiUser(?int $audiUser): self
-    {
-        $this->audiUser = $audiUser;
-        return $this;
-    }
-
-    public function getAudiDate(): ?DateTimeInterface
-    {
-        return $this->audiDate;
-    }
-
-    public function setAudiDate(?DateTimeInterface $audiDate): self
-    {
-        $this->audiDate = $audiDate;
-        return $this;
-    }
-
-    public function getAudiAction(): ?string
-    {
-        return $this->audiAction;
-    }
-
-    public function setAudiAction(?string $audiAction): self
-    {
-        $this->audiAction = $audiAction;
-        return $this;
-    }
 }

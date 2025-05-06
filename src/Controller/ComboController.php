@@ -229,7 +229,7 @@ class ComboController extends AbstractController
         ], $results));
     }
 
-    #[Route('/voluntary', name: 'combo_social_media', methods: ['GET'])]
+    #[Route('/voluntary', name: 'combo_voluntary', methods: ['GET'])]
     public function comboVoluntary(Request $request, VoluntaryRepository $repo): JsonResponse
     {
         $search = $request->query->get('q');

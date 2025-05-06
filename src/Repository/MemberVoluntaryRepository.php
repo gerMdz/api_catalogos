@@ -38,9 +38,9 @@ class MemberVoluntaryRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('mv')
             ->leftJoin('mv.member', 'm')
             ->andWhere('m.id = :memberId')
-            ->andWhere('mv.audiAction IS NULL OR mv.audiAction IN (:valid)')
+//            ->andWhere('mv.audiAction IS NULL OR mv.audiAction IN (:valid)')
             ->setParameter('memberId', $memberId)
-            ->setParameter('valid', ['I', 'U'])
+//            ->setParameter('valid', ['I', 'U'])
             ->getQuery()
             ->getResult();
     }
@@ -49,7 +49,7 @@ class MemberVoluntaryRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('mv')
             ->leftJoin('mv.member', 'm')
-            ->leftJoin('mv.socialMedia', 'v')
+            ->leftJoin('mv.voluntary', 'v')
             ->addSelect('m', 'v')
             ->getQuery()
             ->getResult();
