@@ -28,7 +28,7 @@ class StateController extends AbstractApiController
             'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
             'audiAction' => $item->getAudiAction() ?? 'I',
             'nombre' => $item->getName(),
-            'país' => $item->getCountry()->getName(),
+            'pais' => $item->getCountry()->getName(),
         ], $items));
     }
 
@@ -74,7 +74,7 @@ class StateController extends AbstractApiController
         $result[] = [
             'id' => $state->getId(),
             'nombre' => $state->getName(),
-            'país' => $state->getCountry()->getName(),
+            'pais' => $state->getCountry()->getName(),
             'audiUser' => $state->getAudiUser(),
             'audiDate' => $state->getAudiDate()?->format('d-m-Y H:i:s'),
             'audiAction' => $state->getAudiAction(),
