@@ -22,6 +22,30 @@ use Symfony\Component\Routing\Attribute\Route;
 class ComboController extends AbstractController
 {
 
+    #[Route('/states', name: 'combo_state', methods: ['GET'])]
+    public function comboState(Request $request, CountryRepository $repository): JsonResponse
+    {
+        $search = $request->query->get('q', '');
+
+        $qb = $repository->createQueryBuilder('state')
+            ->setMaxResults(20);
+
+        $states = $repository->findBy([], null, 10);
+        if ($search) {
+            $qb->andWhere('LOWER(state.name) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+            $countries = $qb->getQuery()->getResult();
+        }
+
+        $result = array_map(function ($state) {
+            return [
+                'id' => $state->getId(),
+                'label' => $state->getName(),
+            ];
+        }, $states);
+
+        return $this->json($result);
+    }
 
     #[Route('/countries', name: 'combo_country', methods: ['GET'])]
     public function comboCountry(Request $request, CountryRepository $repository): JsonResponse
@@ -29,9 +53,9 @@ class ComboController extends AbstractController
         $search = $request->query->get('q', '');
 
         $qb = $repository->createQueryBuilder('country')
-            ->setMaxResults(10);
+            ->setMaxResults(30);
 
-        $countries = $repository->findBy([], null, 10);
+        $countries = $repository->findBy([], null, 30);
         if ($search) {
             $qb->andWhere('LOWER(country.name) LIKE :search')
                 ->setParameter('search', '%' . strtolower($search) . '%');
@@ -54,6 +78,8 @@ class ComboController extends AbstractController
         $search = $request->query->get('q', '');
 
         $qb = $memberRepository->createQueryBuilder('m')
+            ->andWhere('mf.audiAction IS NULL OR mf.audiAction != :deleted')
+            ->setParameter('deleted', 'D')
             ->setMaxResults(30);
 
         if ($search) {

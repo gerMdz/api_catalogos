@@ -5,12 +5,16 @@ namespace App\Controller;
 use App\Entity\UsuarioPanel;
 use App\Repository\UsuarioPanelRepository;
 use App\Service\AudiHelperService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 abstract class AbstractApiController extends AbstractController
 {
-    public function __construct(private readonly AudiHelperService $audiHelper)
+    public function __construct(
+        private readonly AudiHelperService        $audiHelper,
+        protected readonly EntityManagerInterface $entityManager,
+    )
     {
     }
 
@@ -18,5 +22,18 @@ abstract class AbstractApiController extends AbstractController
     protected function obtenerUsuarioPorAudiUser(?int $id): ?string
     {
         return $this->audiHelper->obtenerUsuarioPorAudiUser($id);
+    }
+
+    /**
+     * @param $entity
+     * @return void
+     */
+    protected function destroy($entity): void
+    {
+        $entity->setAudiUser($this->getUser()?->getAuditId());
+        $entity->setAudiDate(new DateTime());
+        $entity->setAudiAction('D');
+
+        $this->entityManager->flush();
     }
 }

@@ -58,7 +58,7 @@ class CountryController extends AbstractApiController
     #[Route('/{id}', name: 'app_country_show', methods: ['GET'])]
     public function show(int $id, CountryRepository $repo): JsonResponse
     {
-        $country = $repo->find($$id);
+        $country = $repo->find($id);
         if (!$country) {
             return $this->json(['error' => 'Registro no encontrado'], 404);
         }
