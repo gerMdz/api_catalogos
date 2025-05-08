@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\CountryRepository;
 use App\Repository\FamilyRepository;
 use App\Repository\InterestRepository;
 use App\Repository\LifeStageRepository;
@@ -20,6 +21,33 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/combo')]
 class ComboController extends AbstractController
 {
+
+
+    #[Route('/countries', name: 'combo_country', methods: ['GET'])]
+    public function comboCountry(Request $request, CountryRepository $repository): JsonResponse
+    {
+        $search = $request->query->get('q', '');
+
+        $qb = $repository->createQueryBuilder('country')
+            ->setMaxResults(10);
+
+        $countries = $repository->findBy([], null, 10);
+        if ($search) {
+            $qb->andWhere('LOWER(country.name) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+            $countries = $qb->getQuery()->getResult();
+        }
+
+        $result = array_map(function ($country) {
+            return [
+                'id' => $country->getId(),
+                'label' => $country->getName(),
+            ];
+        }, $countries);
+
+        return $this->json($result);
+    }
+
     #[Route('/member', name: 'combo_member', methods: ['GET'])]
     public function comboMember(Request $request, MemberRepository $memberRepository): JsonResponse
     {
