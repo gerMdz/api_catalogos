@@ -10,8 +10,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/country')]
-final class CountryController extends AbstractApiController
+#[Route('/api/countries')]
+class CountryController extends AbstractApiController
 {
     #[Route('/', name: 'app_country_index', methods: ['GET'])]
     public function index(Request $request, CountryRepository $repo): JsonResponse
