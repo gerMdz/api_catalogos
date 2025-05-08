@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ComboController extends AbstractController
 {
 
-    #[Route('/states', name: 'combo_state', methods: ['GET'])]
+    #[Route('/state', name: 'combo_state', methods: ['GET'])]
     public function comboState(Request $request, CountryRepository $repository): JsonResponse
     {
         $search = $request->query->get('q', '');
@@ -47,7 +47,7 @@ class ComboController extends AbstractController
         return $this->json($result);
     }
 
-    #[Route('/countries', name: 'combo_country', methods: ['GET'])]
+    #[Route('/country', name: 'combo_country', methods: ['GET'])]
     public function comboCountry(Request $request, CountryRepository $repository): JsonResponse
     {
         $search = $request->query->get('q', '');
