@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Controller;
+
+use App\Repository\MemberFamilyRepository;
+use App\Repository\MemberRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/dashboard')]
+class DashboardController extends AbstractController
+{
+
+    #[Route('', name: 'dashboard_index', methods: ['GET'])]
+    public function index(
+        MemberRepository       $memberRepo,
+        MemberFamilyRepository $familyRepo
+    ): JsonResponse
+    {
+        return $this->json([
+            'totalMembers' => $memberRepo->countActive(),
+            'membersWithCoexistence' => $familyRepo->countMembersWithCoexistence(),
+            'membersLivingAlone' => $memberRepo->countMembersLivingAlone(),
+            'completeSurveys' => $familyRepo->countCompleteSurveys(),
+            'latestMembers' => $memberRepo->findLatest(10),
+        ]);
+    }
+
+    #[Route('/fichas_totales', name: 'app_dashboard_fichas_totales', methods: ['GET'])]
+    public function fichasTotales(MemberRepository $memberRepository): JsonResponse
+    {
+        return $this->json(['cant' => $memberRepository->countAllActive()]);
+
+    }
+
+    #[Route('/encuestas_realizadas', name: 'app_dashboard_encuestas_realizadas', methods: ['GET'])]
+    public function encuestasRealizadas(MemberRepository $memberRepository): JsonResponse
+    {
+        return $this->json(['cant' => $memberRepository->countAllActive()]);
+
+    }
+}
