@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Entity\Trait\AuditTrait;
 use App\Repository\StateRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StateRepository::class)]
@@ -26,6 +28,17 @@ class State
     #[ORM\ManyToOne(inversedBy: 'states')]
     #[ORM\JoinColumn(name: 'countries_id', nullable: false)]
     private ?Country $country = null;
+
+    /**
+     * @var Collection<int, Districts>
+     */
+    #[ORM\OneToMany(targetEntity: Districts::class, mappedBy: 'apiState')]
+    private Collection $districts;
+
+    public function __construct()
+    {
+        $this->districts = new ArrayCollection();
+    }
 
     public function __toString(): string
     {
@@ -69,6 +82,36 @@ class State
     public function setCountry(?Country $country): static
     {
         $this->country = $country;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Districts>
+     */
+    public function getDistricts(): Collection
+    {
+        return $this->districts;
+    }
+
+    public function addDistrict(Districts $district): static
+    {
+        if (!$this->districts->contains($district)) {
+            $this->districts->add($district);
+            $district->setApiState($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDistrict(Districts $district): static
+    {
+        if ($this->districts->removeElement($district)) {
+            // set the owning side to null (unless already changed)
+            if ($district->getApiState() === $this) {
+                $district->setApiState(null);
+            }
+        }
 
         return $this;
     }

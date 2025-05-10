@@ -2,7 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\CivilState;
+use App\Entity\Country;
+use App\Entity\Districts;
+use App\Entity\Gender;
+use App\Entity\Locality;
 use App\Entity\Member;
+use App\Entity\State;
 use App\Entity\UsuarioPanel;
 use App\Repository\CivilStateRepository;
 use App\Repository\GenderRepository;
@@ -191,15 +197,12 @@ class MemberController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(int $id, MemberRepository $memberRepo, GenderRepository $genderRepo, CivilStateRepository $civilRepo): JsonResponse
+    public function show(int $id, MemberRepository $memberRepo, EntityManagerInterface $em): JsonResponse
     {
         $member = $memberRepo->find($id);
         if (!$member) {
             return $this->json(['error' => 'Miembro no encontrado'], 404);
         }
-
-        $gender = $genderRepo->find($member->getGender());
-        $civil = $civilRepo->find($member->getCivilState());
 
         // ¿Es relatedMember?
         $relatedMemberIds = array_map(fn($row) => (int)$row['id'],
@@ -210,21 +213,43 @@ class MemberController extends AbstractController
         ")->getArrayResult()
         );
 
+        $gender = $em->getRepository(Gender::class)->find($member->getGender());
+        $civil = $em->getRepository(CivilState::class)->find($member->getCivilState());
+        $country = $em->getRepository(Country::class)->find($member->getCountryId());
+        $state = $em->getRepository(State::class)->find($member->getStateId());
+        /** @var Districts $district */
+        $district = $em->getRepository(Districts::class)->find($member->getDistrictId());
+        $locality = $em->getRepository(Locality::class)->find($member->getLocalitiesId());
+
+
         return $this->json([
             'id' => $member->getId(),
             'name' => $member->getName(),
             'lastname' => $member->getLastname(),
             'birthdate' => $member->getBirthdate()?->format('Y-m-d'),
             'dniDocument' => $member->getDniDocument(),
+            'address' => $member->getAddress(),
             'email' => $member->getEmail(),
             'phone' => $member->getPhone(),
-            'address' => $member->getAddress(),
-            'civilState' => $civil?->getName(),
-            'gender' => $gender?->getName(),
-            'relatedMember' => in_array($member->getId(), $relatedMemberIds),
+            'nameProfession' => $member->getNameProfession(),
+            'artisticSkills' => $member->getArtisticSkills(),
+            'country' => $country->getName(),
+            'state' => $state->getName(),
+            'district' => $district->getName(),
+            'locality' => $locality->getName(),
+            'bossFamily' => $member->isBossFamily(),
+            'celebracion' => $member->getCelebracion(),
+            'nameGuia' => $member->getNameGuia(),
+            'nameGroup' => $member->getNameGroup(),
+            'grupo' => $member->getGrupo(),
+            'participateGp' => $member->getParticipateGp(),
             'audiAction' => $member->getAudiAction(),
             'audiDate' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
             'audiUser' => $this->obtenerUsuarioPorAudiUser($member->getAudiUser()),
+            'gender' => $gender->getName(),
+            'civilState' => $civil->getName(),
+            'relatedMember' => in_array($member->getId(), $relatedMemberIds),
+
         ]);
     }
 
