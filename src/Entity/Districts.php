@@ -25,9 +25,9 @@ class Districts
     #[ORM\Column(name: 'api_districts_id', length: 11)]
     private ?string $apiDistrict = null;
 
-    #[ORM\ManyToOne(inversedBy: 'districts')]
-    #[ORM\JoinColumn(name: 'api_states_id', referencedColumnName: 'api_states_id', nullable: false)]
-    private ?State $apiState = null;
+
+    #[ORM\Column(name: 'api_states_id', nullable: false)]
+    private ?string $apiState = null;
 
     /**
      * @var Collection<int, Locality>
@@ -74,12 +74,12 @@ class Districts
         return $this;
     }
 
-    public function getApiState(): ?State
+    public function getApiState(): ?string
     {
         return $this->apiState;
     }
 
-    public function setApiState(?State $apiState): static
+    public function setApiState(?string $apiState): static
     {
         $this->apiState = $apiState;
 
@@ -115,4 +115,6 @@ class Districts
 
         return $this;
     }
+
+
 }

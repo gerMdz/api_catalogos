@@ -13,7 +13,6 @@ use App\Entity\UsuarioPanel;
 use App\Repository\CivilStateRepository;
 use App\Repository\GenderRepository;
 use App\Repository\MemberRepository;
-use App\Repository\UsuarioPanelRepository;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;

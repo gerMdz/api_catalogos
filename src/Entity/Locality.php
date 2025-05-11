@@ -17,12 +17,12 @@ class Locality
     #[ORM\Column(length: 100)]
     private ?string $name = null;
 
-    #[ORM\Column(name:'api_localities_id',length: 11)]
+    #[ORM\Column(name: 'api_localities_id', length: 11)]
     private ?string $apiLocality = null;
 
-    #[ORM\ManyToOne(inversedBy: 'localities')]
-    #[ORM\JoinColumn(name: 'api_districts_id', referencedColumnName: 'api_districts_id', nullable: false)]
-    private ?Districts $apiDistrict = null;
+
+    #[ORM\Column(name: 'api_districts_id', nullable: false)]
+    private ?string $apiDistrict = null;
 
     public function getId(): ?int
     {
@@ -53,12 +53,12 @@ class Locality
         return $this;
     }
 
-    public function getApiDistrict(): ?Districts
+    public function getApiDistrict(): ?string
     {
         return $this->apiDistrict;
     }
 
-    public function setApiDistrict(?Districts $apiDistrict): static
+    public function setApiDistrict(?string $apiDistrict): static
     {
         $this->apiDistrict = $apiDistrict;
 
