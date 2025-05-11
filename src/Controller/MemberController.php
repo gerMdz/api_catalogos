@@ -212,13 +212,13 @@ class MemberController extends AbstractController
         ")->getArrayResult()
         );
 
-        $gender = $member->getGender() ? $em->getRepository(Gender::class)->find($member->getGender()) : 'No indicado';
-        $civil = $member->getCivilState() ? $em->getRepository(CivilState::class)->find($member->getCivilState()) : 'No indicado';
-        $state = $member->getStateId() ? $em->getRepository(State::class)->find($member->getStateId()) : 'No indicado';
-        $country = $member->getCountryId() ? $em->getRepository(Country::class)->find($member->getCountryId()) : 'No indicado';
+        $gender = $member->getGender() ? $em->getRepository(Gender::class)->find($member->getGender())->getName() : 'No indicado';
+        $civil = $member->getCivilState() ? $em->getRepository(CivilState::class)->find($member->getCivilState())->getName() : 'No indicado';
+        $state = $member->getStateId() ? $em->getRepository(State::class)->find($member->getStateId())->getName() : 'No indicado';
+        $country = $member->getCountryId() ? $em->getRepository(Country::class)->find($member->getCountryId())->getName() : 'No indicado';
         /** @var Districts $district */
-        $district = $member->getDistrictId() ? $em->getRepository(Districts::class)->find($member->getDistrictId()) : 'No indicado';
-        $locality = $member->getLocalitiesId() ? $em->getRepository(Locality::class)->find($member->getLocalitiesId()) : 'No indicado';
+        $district = $member->getDistrictId() ? $em->getRepository(Districts::class)->find($member->getDistrictId())->getName() : 'No indicado';
+        $locality = $member->getLocalitiesId() ? $em->getRepository(Locality::class)->find($member->getLocalitiesId())->getName() : 'No indicado';
 
 
         return $this->json([
@@ -232,10 +232,10 @@ class MemberController extends AbstractController
             'phone' => $member->getPhone(),
             'nameProfession' => $member->getNameProfession(),
             'artisticSkills' => $member->getArtisticSkills(),
-            'country' => $country->getName(),
-            'state' => $state->getName(),
-            'district' => $district->getName(),
-            'locality' => $locality->getName(),
+            'country' => $country,
+            'state' => $state,
+            'district' => $district,
+            'locality' => $locality,
             'bossFamily' => $member->isBossFamily(),
             'celebracion' => $member->getCelebracion(),
             'nameGuia' => $member->getNameGuia(),
@@ -245,8 +245,8 @@ class MemberController extends AbstractController
             'audiAction' => $member->getAudiAction(),
             'audiDate' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
             'audiUser' => $this->obtenerUsuarioPorAudiUser($member->getAudiUser()),
-            'gender' => $gender->getName(),
-            'civilState' => $civil->getName(),
+            'gender' => $gender,
+            'civilState' => $civil,
             'relatedMember' => in_array($member->getId(), $relatedMemberIds),
 
         ]);
