@@ -212,13 +212,13 @@ class MemberController extends AbstractController
         ")->getArrayResult()
         );
 
-        $gender = $em->getRepository(Gender::class)->find($member->getGender());
-        $civil = $em->getRepository(CivilState::class)->find($member->getCivilState());
-        $country = $em->getRepository(Country::class)->find($member->getCountryId());
-        $state = $em->getRepository(State::class)->find($member->getStateId());
+        $gender = $member->getGender() ? $em->getRepository(Gender::class)->find($member->getGender()) : 'No indicado';
+        $civil = $member->getCivilState() ? $em->getRepository(CivilState::class)->find($member->getCivilState()) : 'No indicado';
+        $state = $member->getStateId() ? $em->getRepository(State::class)->find($member->getStateId()) : 'No indicado';
+        $country = $member->getCountryId() ? $em->getRepository(Country::class)->find($member->getCountryId()) : 'No indicado';
         /** @var Districts $district */
-        $district = $em->getRepository(Districts::class)->find($member->getDistrictId());
-        $locality = $em->getRepository(Locality::class)->find($member->getLocalitiesId());
+        $district = $member->getDistrictId() ? $em->getRepository(Districts::class)->find($member->getDistrictId()) : 'No indicado';
+        $locality = $member->getLocalitiesId() ? $em->getRepository(Locality::class)->find($member->getLocalitiesId()) : 'No indicado';
 
 
         return $this->json([
