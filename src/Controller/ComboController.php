@@ -78,7 +78,7 @@ class ComboController extends AbstractController
         $search = $request->query->get('q', '');
 
         $qb = $memberRepository->createQueryBuilder('m')
-            ->andWhere('mf.audiAction IS NULL OR mf.audiAction != :deleted')
+            ->andWhere('m.audiAction IS NULL OR m.audiAction != :deleted')
             ->setParameter('deleted', 'D')
             ->setMaxResults(30);
 
