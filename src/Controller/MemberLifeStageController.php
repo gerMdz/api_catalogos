@@ -55,8 +55,8 @@ class MemberLifeStageController extends AbstractApiController
 
         return $this->json(array_map(fn(MemberLifeStage $item) => [
             'id' => $item->getId(),
-            'interest_id' => $item->getLifeStage()?->getId(),
-            'interest' => $item->getLifeStage()?->getName(),
+            'lifeStage_id' => $item->getLifeStage()?->getId(),
+            'lifeStage' => $item->getLifeStage()?->getName(),
             'audi_action' => $item->getAudiAction(),
             'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
             'audi_user' => $item->getAudiUser(),
