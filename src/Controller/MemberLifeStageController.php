@@ -52,7 +52,17 @@ class MemberLifeStageController extends AbstractApiController
     public function show(Member $member, MemberLifeStageRepository $repo): JsonResponse
     {
         $result = $repo->findByMember($member);
-        return $this->json($result);
+
+        return $this->json(array_map(fn(MemberLifeStage $item) => [
+            'id' => $item->getId(),
+            'interest_id' => $item->getLifeStage()?->getId(),
+            'interest' => $item->getLifeStage()?->getName(),
+            'audi_action' => $item->getAudiAction(),
+            'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audi_user' => $item->getAudiUser(),
+        ], $result));
+
+
     }
 
     /**
