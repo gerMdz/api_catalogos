@@ -51,7 +51,7 @@ class MemberInterestController extends AbstractController
     }
 
 
-    #[Route('/{memberId}', name: 'member_interest_by_member', methods: ['GET'])]
+    #[Route('/member/{memberId}', name: 'member_interest_by_member', methods: ['GET'])]
     public function show(int $memberId, MemberRepository $memberRepo, MemberInterestRepository $repo): JsonResponse
     {
         $member = $memberRepo->find($memberId);
@@ -64,8 +64,12 @@ class MemberInterestController extends AbstractController
         return $this->json(array_map(fn(MemberInterest $item) => [
             'id' => $item->getId(),
             'interest' => [
-                'id' => $item->getInterest()?->getId(),
-                'nombre' => $item->getInterest() ?? null,
+                'id' => $item->getId(),
+                'interest_id' => $item->getInterest()?->getId(),
+                'interest' => $item->getInterest()?->getName(),
+                'audi_action' => $item->getAudiAction(),
+                'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+                'audi_user' => $item->getAudiUser(),
             ]
         ], $items));
     }

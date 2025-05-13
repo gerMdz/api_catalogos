@@ -70,7 +70,7 @@ class MemberExperienceController extends AbstractController
             return [
                 'id' => $me->getId(),
                 'experience_id' => $me->getExperience()?->getId(),
-                'experience' => $me->getExperience()->getName(),
+                'experience' => $me->getExperience()?->getName(),
                 'audi_action' => $me->getAudiAction(),
                 'audi_date' => $me->getAudiDate()?->format('Y-m-d H:i:s'),
                 'audi_user' => $me->getAudiUser(),
