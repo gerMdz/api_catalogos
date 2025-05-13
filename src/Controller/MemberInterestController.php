@@ -62,15 +62,14 @@ class MemberInterestController extends AbstractController
         $items = $repo->findByMember($member);
 
         return $this->json(array_map(fn(MemberInterest $item) => [
+
             'id' => $item->getId(),
-            'interest' => [
-                'id' => $item->getId(),
-                'interest_id' => $item->getInterest()?->getId(),
-                'interest' => $item->getInterest()?->getName(),
-                'audi_action' => $item->getAudiAction(),
-                'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
-                'audi_user' => $item->getAudiUser(),
-            ]
+            'interest_id' => $item->getInterest()?->getId(),
+            'interest' => $item->getInterest()?->getName(),
+            'audi_action' => $item->getAudiAction(),
+            'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audi_user' => $item->getAudiUser(),
+
         ], $items));
     }
 
