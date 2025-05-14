@@ -27,3 +27,9 @@ services:
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
 
+    App\Service\FotoService:
+        arguments:
+            $fotoSecret: '%env(CENSO_API_SECRET)%'
+            $cachePath: '%kernel.project_dir%/var/cache/fotos_optimizadas'
+
+
