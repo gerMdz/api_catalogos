@@ -30,6 +30,7 @@ services:
     App\Service\FotoService:
         arguments:
             $fotoSecret: '%env(CENSO_API_SECRET)%'
+            $fotoUrl: '%env(CENSO_URL)%'
             $cachePath: '%kernel.project_dir%/var/cache/fotos_optimizadas'
 
 

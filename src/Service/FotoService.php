@@ -13,13 +13,15 @@ class FotoService
     private ImageManager $imgManager;
     private string $secret;
     private string $cachePath;
+    private string $fotoUrl;
 
-    public function __construct(HttpClientInterface $client, string $fotoSecret, string $cachePath)
+    public function __construct(HttpClientInterface $client, string $fotoSecret, string $cachePath, string $fotoUrl)
     {
         $this->client = $client;
         $this->imgManager = new ImageManager(Driver::class);
         $this->secret = $fotoSecret;
         $this->cachePath = rtrim($cachePath, '/');
+        $this->fotoUrl = $fotoUrl;
     }
 
     /**
@@ -35,7 +37,7 @@ class FotoService
         }
 
         // Descargar imagen original desde censo.sitio
-        $url = "https://censo.sitio/api/foto/" . urlencode($pathPhoto) . "?token={$this->secret}";
+        $url =  $this->fotoUrl. urlencode($pathPhoto) . "?token={$this->secret}";
 
         try {
             $response = $this->client->request('GET', $url);
