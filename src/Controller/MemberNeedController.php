@@ -55,8 +55,8 @@ class MemberNeedController extends AbstractApiController
 
         return $this->json(array_map(fn(MemberNeed $item) => [
             'id' => $item->getId(),
-            'lifeStage_id' => $item->getNeed()?->getId(),
-            'lifeStage' => $item->getNeed()?->getName(),
+            'need_id' => $item->getNeed()?->getId(),
+            'need' => $item->getNeed()?->getName(),
             'audi_action' => $item->getAudiAction(),
             'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
             'audi_user' => $item->getAudiUser(),
