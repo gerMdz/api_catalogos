@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Member;
 use App\Repository\MemberRepository;
 use App\Service\FotoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,7 @@ class FotoController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
+        /** @var Member $member */
         $member = $memberRepository->find($id);
 
         if (!$member || !$member->getPathPhoto()) {

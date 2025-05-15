@@ -37,7 +37,7 @@ class FotoService
         }
 
         // Descargar imagen original desde censo.sitio
-        $url =  $this->fotoUrl. urlencode($pathPhoto) . "?token={$this->secret}";
+        $url = $this->fotoUrl . urlencode($pathPhoto) . "?token={$this->secret}";
 
         try {
             $response = $this->client->request('GET', $url);
@@ -51,7 +51,7 @@ class FotoService
 
             // Leer, escalar proporcionalmente y guardar
             $image = $this->imgManager->read($temp)
-                ->scaleDown(width: 512, height: 512)
+                ->scaleDown(width: 256, height: 256)
                 ->toJpeg(90);
 
             $image->save($destino);
