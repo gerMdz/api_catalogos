@@ -52,7 +52,15 @@ class MemberNeedController extends AbstractApiController
     public function show(Member $member, MemberNeedRepository $repo): JsonResponse
     {
         $result = $repo->findByMember($member);
-        return $this->json($result);
+
+        return $this->json(array_map(fn(MemberNeed $item) => [
+            'id' => $item->getId(),
+            'lifeStage_id' => $item->getNeed()?->getId(),
+            'lifeStage' => $item->getNeed()?->getName(),
+            'audi_action' => $item->getAudiAction(),
+            'audi_date' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+            'audi_user' => $item->getAudiUser(),
+        ], $result));
     }
 
     /**
