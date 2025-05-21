@@ -38,4 +38,15 @@ abstract class AbstractApiController extends AbstractController
 
         $this->entityManager->flush();
     }
+
+    protected function safeGetEntity(callable $getter, string $label, array $context = []): mixed
+    {
+        try {
+            return $getter();
+        } catch (\Throwable $e) {
+            $this->logger->log('data_corruption', "$label inaccesible: " . $e->getMessage(), $context);
+            return null;
+        }
+    }
+
 }

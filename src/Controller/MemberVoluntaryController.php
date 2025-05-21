@@ -27,23 +27,18 @@ class MemberVoluntaryController extends AbstractApiController
 
         $response = array_map(function (MemberVoluntary $item) {
 
-            if (!$item->getVoluntary() || $item->getVoluntary()->getId() === 0) {
-                $this->logger->log(
-                    'data_corruption',
-                    'MemberVoluntary con voluntary_id = 0',
-                    [
-                        'member_voluntary_id' => $item->getId(),
-                        'member_id' => $item->getMember()?->getId(),
-                        'audi_user' => $item->getAudiUser(),
-                    ]
-                );
-                $nameVoluntary = 'No indicado';
-                $idVoluntary = 0;
-            } else {
+            $voluntary = $this->safeGetEntity(
+                fn() => $item->getVoluntary(),
+                'Voluntary no encontrado',
+                [
+                    'member_voluntary_id' => $item->getId(),
+                    'member_id' => $item->getMember()?->getId(),
+                    'audi_user' => $item->getAudiUser(),
+                ]
+            );
 
-                $nameVoluntary = $item->getVoluntary()?->getName();
-                $idVoluntary = $item->getVoluntary()->getId();
-            }
+            $nameVoluntary = $voluntary?->getName() ?? 'No indicado';
+            $idVoluntary = $voluntary?->getId() ?? 0;
 
             return [
                 'id' => $item->getId(),
@@ -58,9 +53,9 @@ class MemberVoluntaryController extends AbstractApiController
                     'id' => $idVoluntary,
                     'nombre' => $nameVoluntary,
                 ],
-
             ];
         }, $items);
+
 
         return $this->json($response);
 
