@@ -9,8 +9,8 @@ use App\Entity\Voluntary;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 #[Route('/api/member-voluntary')]
@@ -25,21 +25,46 @@ class MemberVoluntaryController extends AbstractApiController
             ? $repo->findAllIncluyendoEliminados()
             : $repo->findAllActive();
 
-        return $this->json(array_map(fn(MemberVoluntary $item) => [
-            'id' => $item->getId(),
-            'audiUser' => $this->obtenerUsuarioPorAudiUser($item->getAudiUser()),
-            'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
-            'audiAction' => $item->getAudiAction() ?? 'I',
-            'member' => [
-                'id' => $item->getMember()?->getId(),
-                'nombre' => $item->getMember()?->getNombreCompletoConDni(),
-            ],
-            'voluntary' => [
-                'id' => $item->getVoluntary()?->getId(),
-                'nombre' => $item->getVoluntary()?->getName(),
-            ],
-            'service' => $item->getService(),
-        ], $items));
+        $response = array_map(function (MemberVoluntary $item) {
+
+            if (!$item->getVoluntary() || $item->getVoluntary()->getId() === 0) {
+                $this->logger->log(
+                    'data_corruption',
+                    'MemberVoluntary con voluntary_id = 0',
+                    [
+                        'member_voluntary_id' => $item->getId(),
+                        'member_id' => $item->getMember()?->getId(),
+                        'audi_user' => $item->getAudiUser(),
+                    ]
+                );
+                $nameVoluntary = 'No indicado';
+                $idVoluntary = 0;
+            } else {
+
+                $nameVoluntary = $item->getVoluntary()?->getName();
+                $idVoluntary = $item->getVoluntary()->getId();
+            }
+
+            return [
+                'id' => $item->getId(),
+                'audiUser' => $this->obtenerUsuarioPorAudiUser($item->getAudiUser()),
+                'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+                'audiAction' => $item->getAudiAction() ?? 'I',
+                'member' => [
+                    'id' => $item->getMember()?->getId(),
+                    'nombre' => $item->getMember()?->getNombreCompletoConDni(),
+                ],
+                'voluntary' => [
+                    'id' => $idVoluntary,
+                    'nombre' => $nameVoluntary,
+                ],
+
+            ];
+        }, $items);
+
+        return $this->json($response);
+
+
     }
 
 
