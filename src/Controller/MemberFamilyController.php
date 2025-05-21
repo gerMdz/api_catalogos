@@ -7,6 +7,7 @@ use App\Entity\MemberFamily;
 use App\Repository\MemberFamilyRepository;
 use App\Repository\FamilyRepository;
 use App\Repository\MemberRepository;
+use App\Service\LoggerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -20,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class MemberFamilyController extends AbstractController
 {
 
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly EntityManagerInterface $em, private readonly LoggerService $logger)
     {
     }
 
@@ -119,23 +120,27 @@ class MemberFamilyController extends AbstractController
 
         /** @var MemberFamily $mf */
         foreach ($data as $mf) {
-            try {
 
+            if (!$mf->getFamily() || $mf->getFamily()->getId() === 0) {
 
-                $familyId = $mf->getFamily() ?? 0;
+                $this->logger->log(
+                    'data_corruption',
+                    'MemberFamily con family_id = 0',
+                    [
+                        'member_family_id' => $mf->getId(),
+                        'member_id' => $mf->getMember()?->getId(),
+                        'audi_user' => $mf->getAudiUser(),
+                    ]
+                );
+                continue;
+            }
+            $key = $mf->getMember()->getId() . '-' . $mf->getFamily()->getId();
 
-
-                $key = $mf->getMember()->getId() . '-' . $familyId;
-
-                if (!isset($agrupados[$key])) {
-                    $agrupados[$key] = [];
-                }
-
-                $agrupados[$key][] = $mf;
-            } catch (Exception $e) {
-                return $this->json(['error' => $e->getMessage()], 500);
+            if (!isset($agrupados[$key])) {
+                $agrupados[$key] = [];
             }
 
+            $agrupados[$key][] = $mf;
         }
 
         $resultadoFiltrado = [];
