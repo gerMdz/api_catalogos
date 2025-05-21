@@ -5,9 +5,9 @@ namespace App\Controller;
 use App\Entity\MemberExperience;
 use App\Entity\MemberInterest;
 use App\Repository\MemberExperienceRepository;
-use App\Repository\MemberInterestRepository;
 use App\Repository\MemberRepository;
 use App\Repository\ExperienceRepository;
+use App\Service\LoggerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,18 +19,43 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/member-experience')]
 class MemberExperienceController extends AbstractController
 {
+
+    public function __construct(
+        private readonly LoggerService              $logger,
+        private readonly MemberExperienceRepository $repository
+    )
+    {
+    }
+
+
     #[Route('/', name: 'member_experience_list', methods: ['GET'])]
     public function list(MemberExperienceRepository $repository): JsonResponse
     {
         $data = $repository->findAll();
 
         $response = array_map(function (MemberExperience $me) {
+            if (!$me->getExperience() || $me->getExperience()->getId() === 0) {
+                $this->logger->log(
+                    'data_corruption',
+                    'MemberExperience con experience_id = 0',
+                    [
+                        'member_experience_id' => $me->getId(),
+                        'member_id' => $me->getMember()?->getId(),
+                        'audi_user' => $me->getAudiUser(),
+                    ]
+                );
+                $experience = 0;
+            } else {
+                $experience = $me->getExperience();
+            }
+
+
             return [
                 'id' => $me->getId(),
                 'member_id' => $me->getMember()?->getId(),
                 'member' => $me->getMember(),
                 'experience_id' => $me->getExperience()?->getId(),
-                'experience' => $me->getExperience(),
+                'experience' => $experience,
                 'audi_action' => $me->getAudiAction(),
                 'audi_date' => $me->getAudiDate()?->format('Y-m-d H:i:s'),
                 'audi_user' => $me->getAudiUser(),

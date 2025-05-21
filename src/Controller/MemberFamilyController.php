@@ -9,6 +9,7 @@ use App\Repository\FamilyRepository;
 use App\Repository\MemberRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -118,13 +119,23 @@ class MemberFamilyController extends AbstractController
 
         /** @var MemberFamily $mf */
         foreach ($data as $mf) {
-            $key = $mf->getMember()->getId() . '-' . $mf->getFamily()->getId();
+            try {
 
-            if (!isset($agrupados[$key])) {
-                $agrupados[$key] = [];
+
+                $familyId = $mf->getFamily() ?? 0;
+
+
+                $key = $mf->getMember()->getId() . '-' . $familyId;
+
+                if (!isset($agrupados[$key])) {
+                    $agrupados[$key] = [];
+                }
+
+                $agrupados[$key][] = $mf;
+            } catch (Exception $e) {
+                return $this->json(['error' => $e->getMessage()], 500);
             }
 
-            $agrupados[$key][] = $mf;
         }
 
         $resultadoFiltrado = [];
