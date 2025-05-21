@@ -27,18 +27,25 @@ class MemberVoluntaryController extends AbstractApiController
 
         $response = array_map(function (MemberVoluntary $item) {
 
-            $voluntary = $this->safeGetEntity(
-                fn() => $item->getVoluntary(),
-                'Voluntary no encontrado',
+            $nameVoluntary = $this->safeGetEntity(
+                fn() => $item->getVoluntary()?->getName(),
+                'Voluntary.getName() no accesible',
                 [
                     'member_voluntary_id' => $item->getId(),
                     'member_id' => $item->getMember()?->getId(),
                     'audi_user' => $item->getAudiUser(),
                 ]
-            );
+            ) ?? 'No indicado';
 
-            $nameVoluntary = $voluntary?->getName() ?? 'No indicado';
-            $idVoluntary = $voluntary?->getId() ?? 0;
+            $idVoluntary = $this->safeGetEntity(
+                fn() => $item->getVoluntary()?->getId(),
+                'Voluntary.getId() no accesible',
+                [
+                    'member_voluntary_id' => $item->getId(),
+                    'member_id' => $item->getMember()?->getId(),
+                    'audi_user' => $item->getAudiUser(),
+                ]
+            ) ?? 0;
 
             return [
                 'id' => $item->getId(),
