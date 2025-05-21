@@ -6,15 +6,20 @@ use App\Entity\MemberService;
 use App\Repository\MemberServiceRepository;
 use App\Entity\Member;
 use App\Entity\Service;
+use App\Service\AudiHelperService;
+use App\Service\LoggerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
+
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/member-service')]
 class MemberServiceController extends AbstractApiController
 {
+
+
     #[Route('/', name: 'member_service_list', methods: ['GET'])]
     public function list(Request $request, MemberServiceRepository $repo): JsonResponse
     {
@@ -24,20 +29,42 @@ class MemberServiceController extends AbstractApiController
             ? $repo->findAllIncluyendoEliminados()
             : $repo->findAllActive();
 
-        return $this->json(array_map(fn(MemberService $item) => [
-            'id' => $item->getId(),
-            'audiUser' => $this->obtenerUsuarioPorAudiUser($item->getAudiUser()),
-            'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
-            'audiAction' => $item->getAudiAction() ?? 'I',
-            'member' => [
-                'id' => $item->getMember()?->getId(),
-                'nombre' => $item->getMember()?->getNombreCompletoConDni(),
-            ],
-            'service' => [
-                'id' => $item->getService()?->getId(),
-                'nombre' => $item->getService()?->getName(),
-            ]
-        ], $items));
+        $response = array_map(function (MemberService $item) {
+            if (!$item->getService() || $item->getService()->getId() === 0) {
+                $this->logger->log(
+                    'data_corruption',
+                    'MemberService con service_id = 0',
+                    [
+                        'member_service_id' => $item->getId(),
+                        'member_id' => $item->getMember()?->getId(),
+                        'audi_user' => $item->getAudiUser(),
+                    ]
+                );
+                $nameService = 'No indicado';
+                $idService = 0;
+            } else {
+
+                $nameService = $item->getService()?->getName();
+                $idService = $item->getService()->getId();
+            }
+
+            return [
+                'id' => $item->getId(),
+                'audiUser' => $this->obtenerUsuarioPorAudiUser($item->getAudiUser()),
+                'audiDate' => $item->getAudiDate()?->format('Y-m-d H:i:s'),
+                'audiAction' => $item->getAudiAction() ?? 'I',
+                'member' => [
+                    'id' => $item->getMember()?->getId(),
+                    'nombre' => $item->getMember()?->getNombreCompletoConDni(),
+                ],
+                'service' => [
+                    'id' => $idService,
+                    'nombre' => $nameService,
+                ]
+            ];
+        }, $items);
+
+        return $this->json($response);
     }
 
 
