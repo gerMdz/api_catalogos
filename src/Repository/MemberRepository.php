@@ -105,4 +105,16 @@ class MemberRepository extends ServiceEntityRepository
     }
 
 
+    public function countMembersByCivilState(): array
+    {
+        return $this->createQueryBuilder('m')
+            ->select('cs.id, cs.name, COUNT(m.id) as count')
+            ->join('App\Entity\CivilState', 'cs', 'WITH', 'm.civilState = cs.id')
+            ->where('m.audiAction IS NULL OR m.audiAction IN (:valid)')
+            ->setParameter('valid', ['I', 'U'])
+            ->groupBy('cs.id')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

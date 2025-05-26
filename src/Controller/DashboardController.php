@@ -39,6 +39,11 @@ class DashboardController extends AbstractController
     public function encuestasRealizadas(MemberRepository $memberRepository): JsonResponse
     {
         return $this->json(['cant' => $memberRepository->countAllActive()]);
+    }
 
+    #[Route('/miembros_por_estado_civil', name: 'app_dashboard_miembros_por_estado_civil', methods: ['GET'])]
+    public function miembrosPorEstadoCivil(MemberRepository $memberRepository): JsonResponse
+    {
+        return $this->json($memberRepository->countMembersByCivilState());
     }
 }
