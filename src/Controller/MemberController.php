@@ -41,16 +41,6 @@ class MemberController extends AbstractController
         $generos = $genderRepository->findAll();
         $estadosCiviles = $civilStateRepository->findAll();
 
-        // Armamos mapas para lookup rápido
-        $mapGenero = [];
-        foreach ($generos as $g) {
-            $mapGenero[$g->getId()] = $g->getName();
-        }
-
-        $mapEstadoCivil = [];
-        foreach ($estadosCiviles as $e) {
-            $mapEstadoCivil[$e->getId()] = $e->getName();
-        }
 
         // Obtener los IDs de todos los miembros que son relatedMember en MemberFamily
         $relatedMemberIds = array_map(fn($row) => (int)$row['id'],
@@ -65,6 +55,7 @@ class MemberController extends AbstractController
         // Recorremos y armamos el array con valores resueltos
         $data = [];
         foreach ($members as $member) {
+            list($gender, $civil, $state, $country, $district, $locality) = $this->getNombresAsociados($member);
             $data[] = [
                 'id' => $member->getId(),
                 'name' => $member->getName(),
@@ -75,11 +66,30 @@ class MemberController extends AbstractController
                 'phone' => $member->getPhone(),
                 'address' => $member->getAddress(),
                 'genderId' => $member->getGender(),
-                'gender' => $mapGenero[$member->getGender()] ?? null,
+                'gender' => $gender,
                 'civilStateId' => $member->getCivilState(),
-                'civilState' => $mapEstadoCivil[$member->getCivilState()] ?? null,
+                'civilState' => $civil,
                 'relatedMember' => in_array($member->getId(), $relatedMemberIds),
                 'audiAction' => $member->getAudiAction(),
+                'nameProfession' => $member->getNameProfession(),
+                'artisticSkills' => $member->getArtisticSkills(),
+                'countryID' => $member->getCountryId(),
+                'country' => $country,
+                'stateID' => $member->getStateId(),
+                'state' => $state,
+                'districtId' => $member->getDistrictId(),
+                'district' => $district,
+                'localityId' => $member->getLocalitiesId(),
+                'locality' => $locality,
+                'bossFamily' => $member->isBossFamily(),
+                'quantitySons' => $member->getQuantitySons(),
+                'celebracion' => $member->getCelebracion(),
+                'nameGuia' => $member->getNameGuia(),
+                'nameGroup' => $member->getNameGroup(),
+                'grupo' => $member->getGrupo(),
+                'participateGp' => $member->getParticipateGp(),
+                'audiDate' => $member->getAudiDate()?->format('Y-m-d H:i:s'),
+                'audiUser' => $this->obtenerUsuarioPorAudiUser($member->getAudiUser()),
             ];
         }
 
@@ -142,26 +152,26 @@ class MemberController extends AbstractController
         $member->setName($data['name'] ?? $member->getName());
         $member->setLastname($data['lastname'] ?? $member->getLastname());
         $member->setBirthdate(isset($data['birthdate']) ? new DateTime($data['birthdate']) : $member->getBirthdate());
-        $member->setDniDocument($data['dni_document'] ?? $member->getDniDocument());
+        $member->setDniDocument($data['dniDocument'] ?? $member->getDniDocument());
         $member->setAddress($data['address'] ?? $member->getAddress());
         $member->setEmail($data['email'] ?? $member->getEmail());
         $member->setPhone($data['phone'] ?? $member->getPhone());
-        $member->setGender($data['gender_id'] ?? $member->getGender());
-        $member->setCivilState($data['civil_state_id'] ?? $member->getCivilState());
+        $member->setGender($data['genderId'] ?? $member->getGender());
+        $member->setCivilState($data['civilStateId'] ?? $member->getCivilState());
         $member->setPathPhoto($data['path_photo'] ?? $member->getPathPhoto());
-        $member->setNameProfession($data['name_profession'] ?? $member->getNameProfession());
-        $member->setArtisticSkills($data['artistic_skills'] ?? $member->getArtisticSkills());
-        $member->setCountryId($data['country_id'] ?? $member->getCountryId());
-        $member->setStateId($data['state_id'] ?? $member->getStateId());
-        $member->setDistrictId($data['district_id'] ?? $member->getDistrictId());
-        $member->setLocalitiesId($data['localities_id'] ?? $member->getLocalitiesId());
-        $member->setBossFamily($data['boss_family'] ?? $member->isBossFamily());
-        $member->setQuantitySons($data['quantity_sons'] ?? $member->getQuantitySons());
+        $member->setNameProfession($data['nameProfession'] ?? $member->getNameProfession());
+        $member->setArtisticSkills($data['artisticSkills'] ?? $member->getArtisticSkills());
+        $member->setCountryId($data['countryId'] ?? $member->getCountryId());
+        $member->setStateId($data['stateId'] ?? $member->getStateId());
+        $member->setDistrictId($data['districtId'] ?? $member->getDistrictId());
+        $member->setLocalitiesId($data['localitiesId'] ?? $member->getLocalitiesId());
+        $member->setBossFamily($data['bossFamily'] ?? $member->isBossFamily());
+        $member->setQuantitySons($data['quantitySons'] ?? $member->getQuantitySons());
         $member->setCelebracion($data['celebracion'] ?? $member->getCelebracion());
-        $member->setNameGuia($data['name_guia'] ?? $member->getNameGuia());
-        $member->setNameGroup($data['name_group'] ?? $member->getNameGroup());
+        $member->setNameGuia($data['nameGuia'] ?? $member->getNameGuia());
+        $member->setNameGroup($data['nameGroup'] ?? $member->getNameGroup());
         $member->setGrupo($data['grupo'] ?? $member->getGrupo());
-        $member->setParticipateGp($data['participate_gp'] ?? $member->getParticipateGp());
+        $member->setParticipateGp($data['participateGp'] ?? $member->getParticipateGp());
 
         $member->setAudiUser($this->getUser()?->getAuditId() ?? null);
         $member->setAudiDate(new DateTime());
@@ -212,13 +222,7 @@ class MemberController extends AbstractController
         ")->getArrayResult()
         );
 
-        $gender = $member->getGender() ? $em->getRepository(Gender::class)->find($member->getGender())->getName() : 'No indicado';
-        $civil = $member->getCivilState() ? $em->getRepository(CivilState::class)->find($member->getCivilState())->getName() : 'No indicado';
-        $state = $member->getStateId() ? $em->getRepository(State::class)->find($member->getStateId())->getName() : 'No indicado';
-        $country = $member->getCountryId() ? $em->getRepository(Country::class)->find($member->getCountryId())->getName() : 'No indicado';
-        /** @var Districts $district */
-        $district = $member->getDistrictId() ? $em->getRepository(Districts::class)->find($member->getDistrictId())->getName() : 'No indicado';
-        $locality = $member->getLocalitiesId() ? $em->getRepository(Locality::class)->find($member->getLocalitiesId())->getName() : 'No indicado';
+        list($gender, $civil, $state, $country, $district, $locality) = $this->getNombresAsociados($member);
 
 
         return $this->json([
@@ -259,6 +263,23 @@ class MemberController extends AbstractController
             $usuario = $this->em->getRepository(UsuarioPanel::class)->findOneBy(['auditId' => $id])->getNombre();
         }
         return $usuario;
+    }
+
+    /**
+     * @param Member $member
+     * @return array
+     */
+    public function getNombresAsociados(Member $member): array
+    {
+        $em = $this->em;
+        $gender = $member->getGender() ? $em->getRepository(Gender::class)->find($member->getGender())->getName() : 'No indicado';
+        $civil = $member->getCivilState() ? $em->getRepository(CivilState::class)->find($member->getCivilState())->getName() : 'No indicado';
+        $state = $member->getStateId() ? $em->getRepository(State::class)->find($member->getStateId())->getName() : 'No indicado';
+        $country = $member->getCountryId() ? $em->getRepository(Country::class)->find($member->getCountryId())->getName() : 'No indicado';
+        /** @var Districts $district */
+        $district = $member->getDistrictId() ? $em->getRepository(Districts::class)->find($member->getDistrictId())->getName() : 'No indicado';
+        $locality = $member->getLocalitiesId() ? $em->getRepository(Locality::class)->find($member->getLocalitiesId())->getName() : 'No indicado';
+        return array($gender, $civil, $state, $country, $district, $locality);
     }
 
 
