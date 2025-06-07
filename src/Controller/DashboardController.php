@@ -46,4 +46,10 @@ class DashboardController extends AbstractController
     {
         return $this->json($memberRepository->countMembersByCivilState());
     }
+
+    #[Route('/miembros_por_etapa_vida', name: 'app_dashboard_miembros_por_etapa_vida', methods: ['GET'])]
+    public function miembrosPorEtapaVida(MemberRepository $memberRepository): JsonResponse
+    {
+        return $this->json($memberRepository->countMembersByLifeStage());
+    }
 }

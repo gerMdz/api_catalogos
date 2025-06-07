@@ -117,4 +117,19 @@ class MemberRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function countMembersByLifeStage(): array
+    {
+        return $this->createQueryBuilder('m')
+            ->select('ls.id, ls.name, COUNT(DISTINCT m.id) as count')
+            ->join('App\Entity\MemberLifeStage', 'mls', 'WITH', 'mls.member = m.id')
+            ->join('App\Entity\LifeStage', 'ls', 'WITH', 'mls.lifeStage = ls.id')
+            ->where('m.audiAction IS NULL OR m.audiAction IN (:valid)')
+            ->andWhere('mls.audiAction IS NULL OR mls.audiAction IN (:valid)')
+            ->setParameter('valid', ['I', 'U'])
+            ->groupBy('ls.id')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
