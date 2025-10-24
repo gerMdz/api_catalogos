@@ -8,6 +8,7 @@ use App\Entity\Districts;
 use App\Entity\Gender;
 use App\Entity\Locality;
 use App\Entity\Member;
+use App\Entity\Category;
 use App\Entity\State;
 use App\Entity\UsuarioPanel;
 use App\Repository\CivilStateRepository;
@@ -56,6 +57,7 @@ class MemberController extends AbstractController
         $data = [];
         foreach ($members as $member) {
             list($gender, $civil, $state, $country, $district, $locality) = $this->getNombresAsociados($member);
+            $cat = $member->getCategory();
             $data[] = [
                 'id' => $member->getId(),
                 'name' => $member->getName(),
@@ -69,6 +71,8 @@ class MemberController extends AbstractController
                 'gender' => $gender,
                 'civilStateId' => $member->getCivilState(),
                 'civilState' => $civil,
+                'categoryId' => $cat?->getId() ? (string)$cat->getId() : null,
+                'category' => $cat?->getNombre(),
                 'relatedMember' => in_array($member->getId(), $relatedMemberIds),
                 'audiAction' => $member->getAudiAction(),
                 'nameProfession' => $member->getNameProfession(),
@@ -131,6 +135,15 @@ class MemberController extends AbstractController
         $member->setGrupo($data['grupo'] ?? null);
         $member->setParticipateGp($data['participate_gp'] ?? null);
 
+        // Category (accepts 'category_id' or 'categoryId')
+        $categoryId = $data['category_id'] ?? ($data['categoryId'] ?? null);
+        if ($categoryId !== null && $categoryId !== '') {
+            $category = $this->em->getRepository(Category::class)->find($categoryId);
+            $member->setCategory($category ?: null);
+        } else {
+            $member->setCategory(null);
+        }
+
         $member->setAudiUser($this->getUser()?->getAuditId() ?? null);
         $member->setAudiDate(new DateTime());
         $member->setAudiAction('I');
@@ -172,6 +185,24 @@ class MemberController extends AbstractController
         $member->setNameGroup($data['nameGroup'] ?? $member->getNameGroup());
         $member->setGrupo($data['grupo'] ?? $member->getGrupo());
         $member->setParticipateGp($data['participateGp'] ?? $member->getParticipateGp());
+
+        // Category update (accepts 'category_id' or 'categoryId')
+        $categoryProvided = false;
+        if (array_key_exists('category_id', $data)) {
+            $categoryProvided = true;
+            $categoryId = $data['category_id'];
+        } elseif (array_key_exists('categoryId', $data)) {
+            $categoryProvided = true;
+            $categoryId = $data['categoryId'];
+        }
+        if ($categoryProvided) {
+            if ($categoryId === null || $categoryId === '') {
+                $member->setCategory(null);
+            } else {
+                $category = $this->em->getRepository(Category::class)->find($categoryId);
+                $member->setCategory($category ?: null);
+            }
+        }
 
         $member->setAudiUser($this->getUser()?->getAuditId() ?? null);
         $member->setAudiDate(new DateTime());
@@ -251,6 +282,8 @@ class MemberController extends AbstractController
             'audiUser' => $this->obtenerUsuarioPorAudiUser($member->getAudiUser()),
             'gender' => $gender,
             'civilState' => $civil,
+            'categoryId' => $member->getCategory()?->getId() ? (string)$member->getCategory()->getId() : null,
+            'category' => $member->getCategory()?->getNombre(),
             'relatedMember' => in_array($member->getId(), $relatedMemberIds),
 
         ]);

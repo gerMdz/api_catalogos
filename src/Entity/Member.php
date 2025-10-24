@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\MemberRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Category;
 
 #[ORM\Entity(repositoryClass: MemberRepository::class)]
 #[ORM\Table(name: 'members')]
@@ -94,6 +95,10 @@ class Member
     #[ORM\ManyToOne(inversedBy: 'members')]
     #[ORM\Column(name: 'civil_state_id')]
     private ?int $civilState = null;
+
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: 'category_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Category $category = null;
 
     public function __toString(): string
     {
@@ -374,6 +379,17 @@ class Member
     {
         $this->civilState = $civilState;
 
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): self
+    {
+        $this->category = $category;
         return $this;
     }
 
