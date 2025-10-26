@@ -33,12 +33,14 @@ class MemberController extends AbstractController
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
+        Request              $request,
         MemberRepository     $memberRepository,
         GenderRepository     $genderRepository,
         CivilStateRepository $civilStateRepository
     ): JsonResponse
     {
-        $members = $memberRepository->findBy([], ['lastname' => 'ASC']);
+        $categoryParam = $request->query->get('categoryId', $request->query->get('category'));
+        $members = $memberRepository->findByCategory($categoryParam);
         $generos = $genderRepository->findAll();
         $estadosCiviles = $civilStateRepository->findAll();
 

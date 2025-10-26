@@ -132,4 +132,30 @@ class MemberRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * Find members by category filter. If $categoryParam is:
+     * - null or empty: returns all members ordered by lastname (no extra filter)
+     * - 'null'/'none' (case-insensitive) or 'sin'/'empty'/'nil': members without category assigned
+     * - numeric: members with that category id
+     */
+    public function findByCategory(?string $categoryParam): array
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->orderBy('m.lastname', 'ASC');
+
+        if ($categoryParam === null || $categoryParam === '') {
+            return $qb->getQuery()->getResult();
+        }
+
+        $normalized = strtolower(trim($categoryParam));
+        if (in_array($normalized, ['null', 'none', 'sin', 'empty', 'nil'])) {
+            $qb->andWhere('m.category IS NULL');
+        } else {
+            $qb->andWhere('m.category = :catId')
+               ->setParameter('catId', (int)$categoryParam);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
